@@ -28,14 +28,15 @@ class AppDrawer extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primary,
-                    ),
-                    child: ClipOval(
-                      child: CustomPaint(painter: _MiniLogoPainter()),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/logo.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                      border: Border.all(color: Colors.white, width: 3),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -132,9 +133,7 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const HelpFeedbackScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const HelpFeedbackScreen()),
                 );
               },
             ),
@@ -145,9 +144,7 @@ class AppDrawer extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
               },
             ),
@@ -171,7 +168,6 @@ class AppDrawer extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _ModeTab extends StatelessWidget {

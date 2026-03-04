@@ -59,10 +59,7 @@ class _MyRoutesScreenState extends State<MyRoutesScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _AssignedRoutesTab(),
-          _TripHistoryTab(),
-        ],
+        children: const [_AssignedRoutesTab(), _TripHistoryTab()],
       ),
     );
   }
@@ -113,10 +110,7 @@ class _AssignedRoutesTab extends StatelessWidget {
                   ),
                   Text(
                     'Badge: ${auth.driverBadge ?? '—'}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -159,7 +153,9 @@ class _AssignedRoutesTab extends StatelessWidget {
                   if (route.status == RouteStatus.unavailable) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('This route is currently unavailable'),
+                        content: const Text(
+                          'This route is currently unavailable',
+                        ),
                         backgroundColor: AppColors.statusUnavailable,
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -545,13 +541,15 @@ class _TripHistoryTab extends StatelessWidget {
               const SizedBox(width: 12),
               _StatChip(
                 label: 'This Week',
-                value: '${_trips.where((t) => DateTime.now().difference(t.date).inDays < 7).length}',
+                value:
+                    '${_trips.where((t) => DateTime.now().difference(t.date).inDays < 7).length}',
                 icon: Icons.calendar_today_rounded,
               ),
               const SizedBox(width: 12),
               _StatChip(
                 label: 'Stops Done',
-                value: '${_trips.fold<int>(0, (sum, t) => sum + t.stopsCompleted)}',
+                value:
+                    '${_trips.fold<int>(0, (sum, t) => sum + t.stopsCompleted)}',
                 icon: Icons.location_on_rounded,
               ),
             ],
@@ -625,8 +623,18 @@ class _TripCard extends StatelessWidget {
     if (diff.inHours < 24) return 'Today';
     if (diff.inDays == 1) return 'Yesterday';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${dt.day} ${months[dt.month - 1]}';
   }

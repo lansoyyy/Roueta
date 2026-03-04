@@ -31,10 +31,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
     setState(() => _errorMessage = null);
 
     final auth = context.read<AuthProvider>();
-    final success = await auth.login(
-      _usernameCtrl.text,
-      _passwordCtrl.text,
-    );
+    final success = await auth.login(_usernameCtrl.text, _passwordCtrl.text);
 
     if (!mounted) return;
 
@@ -46,8 +43,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
       );
     } else {
       setState(
-        () => _errorMessage =
-            'Invalid username or password. Please try again.',
+        () => _errorMessage = 'Invalid username or password. Please try again.',
       );
     }
   }
@@ -84,10 +80,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Sign in to manage your route',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
 
                     const SizedBox(height: 32),
@@ -104,10 +97,9 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                         hint: 'e.g. driver01',
                         prefixIcon: Icons.person_outline,
                       ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty)
-                              ? 'Username is required'
-                              : null,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Username is required'
+                          : null,
                     ),
 
                     const SizedBox(height: 20),
@@ -124,8 +116,9 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                         hint: '••••••••',
                         prefixIcon: Icons.lock_outline,
                         suffix: GestureDetector(
-                          onTap: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
+                          onTap: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                           child: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off_outlined
@@ -135,10 +128,9 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                           ),
                         ),
                       ),
-                      validator: (v) =>
-                          (v == null || v.isEmpty)
-                              ? 'Password is required'
-                              : null,
+                      validator: (v) => (v == null || v.isEmpty)
+                          ? 'Password is required'
+                          : null,
                     ),
 
                     const SizedBox(height: 16),
@@ -189,8 +181,8 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          disabledBackgroundColor:
-                              AppColors.primary.withOpacity(0.6),
+                          disabledBackgroundColor: AppColors.primary
+                              .withOpacity(0.6),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -354,10 +346,7 @@ class _TealHeader extends StatelessWidget {
                       ),
                       Text(
                         'RouETA Staff Portal',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                     ],
                   ),

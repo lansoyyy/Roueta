@@ -33,21 +33,11 @@ class RoleSelectionScreen extends StatelessWidget {
                 height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.directions_bus_rounded,
-                    color: AppColors.primary,
-                    size: 50,
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/logo.jpg'),
+                    fit: BoxFit.cover,
                   ),
+                  border: Border.all(color: Colors.white, width: 3),
                 ),
               ),
               const SizedBox(height: 20),
@@ -155,9 +145,9 @@ class RoleSelectionScreen extends StatelessWidget {
 
   void _enterAsPassenger(BuildContext context) {
     context.read<AppProvider>().setUserMode(UserMode.passenger);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const MainMapScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const MainMapScreen()));
   }
 
   void _enterAsDriver(BuildContext context) {
@@ -169,9 +159,9 @@ class RoleSelectionScreen extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const MainMapScreen()),
       );
     } else {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const DriverLoginScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const DriverLoginScreen()));
     }
   }
 }

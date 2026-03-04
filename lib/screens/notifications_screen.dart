@@ -36,8 +36,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _NotifItem(
       type: _NotifType.routeStatus,
       title: 'Route Status Changed',
-      body:
-          'Mintal – GE Torres route is now operating. Buses are on the road.',
+      body: 'Mintal – GE Torres route is now operating. Buses are on the road.',
       time: DateTime.now().subtract(const Duration(hours: 3, minutes: 40)),
       isRead: true,
     ),
@@ -134,8 +133,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: _notifications.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, indent: 72),
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
               itemBuilder: (_, i) {
                 final notif = _notifications[i];
                 return Dismissible(
@@ -255,10 +253,7 @@ class _NotificationTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       _formatTime(item.time),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[400],
-                      ),
+                      style: TextStyle(fontSize: 11, color: Colors.grey[400]),
                     ),
                   ],
                 ),

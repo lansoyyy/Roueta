@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LocationPermissionScreen()),
@@ -71,19 +71,6 @@ class _SplashScreenState extends State<SplashScreen>
         child: SafeArea(
           child: Stack(
             children: [
-              // Top curved text "Mabuhay ug Madayaw!"
-              Positioned(
-                top: 20,
-                left: 0,
-                right: 0,
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: const Center(
-                    child: _ArcText(text: 'Mabuhay ug Madayaw!', radius: 140),
-                  ),
-                ),
-              ),
-
               // Center content
               Center(
                 child: FadeTransition(
@@ -95,21 +82,16 @@ class _SplashScreenState extends State<SplashScreen>
                       children: [
                         // Logo circle
                         Container(
-                          width: 160,
-                          height: 160,
+                          width: 180,
+                          height: 180,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFF4DD0E1),
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/logo.jpg'),
+                              fit: BoxFit.cover,
+                            ),
                             border: Border.all(color: Colors.white, width: 3),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
                           ),
-                          child: const _RouetaLogo(size: 100),
                         ),
                         const SizedBox(height: 32),
                         const Text(

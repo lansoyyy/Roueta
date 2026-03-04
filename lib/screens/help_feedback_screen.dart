@@ -54,10 +54,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          _FaqTab(),
-          _FeedbackTab(),
-        ],
+        children: const [_FaqTab(), _FeedbackTab()],
       ),
     );
   }
@@ -364,7 +361,9 @@ class _FeedbackTabState extends State<_FeedbackTab> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Icon(
-                      i < _rating ? Icons.star_rounded : Icons.star_border_rounded,
+                      i < _rating
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
                       size: 40,
                       color: i < _rating
                           ? const Color(0xFFFFB300)
@@ -410,9 +409,7 @@ class _FeedbackTabState extends State<_FeedbackTab> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary
-                          : Colors.white,
+                      color: isSelected ? AppColors.primary : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
@@ -447,8 +444,9 @@ class _FeedbackTabState extends State<_FeedbackTab> {
               controller: _subjectCtrl,
               textInputAction: TextInputAction.next,
               decoration: _inputDec('e.g. Wrong ETA on Ecoland stop'),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Subject is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Subject is required'
+                  : null,
             ),
 
             const SizedBox(height: 20),
@@ -464,10 +462,9 @@ class _FeedbackTabState extends State<_FeedbackTab> {
               maxLines: 5,
               textInputAction: TextInputAction.newline,
               decoration: _inputDec('Describe your feedback in detail...'),
-              validator: (v) =>
-                  (v == null || v.trim().length < 10)
-                      ? 'Please enter at least 10 characters'
-                      : null,
+              validator: (v) => (v == null || v.trim().length < 10)
+                  ? 'Please enter at least 10 characters'
+                  : null,
             ),
 
             const SizedBox(height: 32),
@@ -585,10 +582,7 @@ class _SuccessView extends StatelessWidget {
           const SizedBox(height: 24),
           const Text(
             'Feedback Sent!',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(

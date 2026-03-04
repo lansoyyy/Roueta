@@ -51,5 +51,7 @@
 	<string>RouETA needs your location to show nearby bus stops and estimated arrival times.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>RouETA needs your location to show nearby bus stops and estimated arrival times.</string>
+	<key>GMSServicesProvideAPIKey</key>
+	<string>AIzaSyBwByaaKz7j4OGnwPDxeMdmQ4Pa50GA42o</string>
 </dict>
 </plist>

@@ -124,8 +124,7 @@ class _RecentRouteCard extends StatelessWidget {
 
   String get _lastVisited {
     if (visitedMinutesAgo < 60) return '${visitedMinutesAgo}m ago';
-    if (visitedMinutesAgo < 1440)
-      return '${(visitedMinutesAgo ~/ 60)}h ago';
+    if (visitedMinutesAgo < 1440) return '${(visitedMinutesAgo ~/ 60)}h ago';
     return '${(visitedMinutesAgo ~/ 1440)}d ago';
   }
 
@@ -313,11 +312,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.history_rounded,
-            size: 72,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.history_rounded, size: 72, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'No recent routes',

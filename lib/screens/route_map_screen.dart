@@ -25,13 +25,13 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   Timer? _timer;
 
   OccupancyStatus _routeOccupancy = OccupancyStatus.limitedSeats;
-  DateTime _occupancyLastUpdated =
-      DateTime.now().subtract(const Duration(minutes: 8));
+  DateTime _occupancyLastUpdated = DateTime.now().subtract(
+    const Duration(minutes: 8),
+  );
 
   @override
   void initState() {
     super.initState();
-    _buildMapElements();
     _simulateApproach();
     final activeRoute = widget.route;
     if (activeRoute.occupancyStatus != null) {
@@ -53,16 +53,18 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final route = widget.route;
     for (int i = 0; i < route.stops.length; i++) {
       final stop = route.stops[i];
-      markers.add(Marker(
-        markerId: MarkerId(stop.id),
-        position: stop.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          i == 0 || i == route.stops.length - 1
-              ? BitmapDescriptor.hueRed
-              : BitmapDescriptor.hueCyan,
+      markers.add(
+        Marker(
+          markerId: MarkerId(stop.id),
+          position: stop.position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            i == 0 || i == route.stops.length - 1
+                ? BitmapDescriptor.hueRed
+                : BitmapDescriptor.hueCyan,
+          ),
+          infoWindow: InfoWindow(title: stop.name),
         ),
-        infoWindow: InfoWindow(title: stop.name),
-      ));
+      );
     }
     final polyline = Polyline(
       polylineId: PolylineId(route.id),
@@ -75,8 +77,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     setState(() {
       _markers = markers;
       _polylines = {polyline};
-      _nearestStop =
-          route.stops.length > 1 ? route.stops[1] : route.stops[0];
+      _nearestStop = route.stops.length > 1 ? route.stops[1] : route.stops[0];
     });
   }
 
@@ -95,8 +96,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
           }
         }
       });
-      if (_nearestMinutes == 2 && !_notificationSent && _nearestStop != null)
- {
+      if (_nearestMinutes == 2 && !_notificationSent && _nearestStop != null) {
         _notificationSent = true;
         NotificationService().showBusApproachingNotification(
           stopName: _nearestStop!.name,
@@ -110,23 +110,32 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final pts = widget.route.polylinePoints;
     if (pts.isEmpty) return const LatLng(7.0644, 125.5214);
     double lat = 0, lng = 0;
-    for (final p in pts) { lat += p.latitude; lng += p.longitude; }
+    for (final p in pts) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
     return LatLng(lat / pts.length, lng / pts.length);
   }
 
   String get _occupancyLabel {
     switch (_routeOccupancy) {
-      case OccupancyStatus.seatAvailable: return '30% Full';
-      case OccupancyStatus.limitedSeats: return '80% Full';
-      case OccupancyStatus.fullCapacity: return '100% Full';
+      case OccupancyStatus.seatAvailable:
+        return '30% Full';
+      case OccupancyStatus.limitedSeats:
+        return '80% Full';
+      case OccupancyStatus.fullCapacity:
+        return '100% Full';
     }
   }
 
   int get _occupancyFilled {
     switch (_routeOccupancy) {
-      case OccupancyStatus.seatAvailable: return 3;
-      case OccupancyStatus.limitedSeats: return 8;
-      case OccupancyStatus.fullCapacity: return 10;
+      case OccupancyStatus.seatAvailable:
+        return 3;
+      case OccupancyStatus.limitedSeats:
+        return 8;
+      case OccupancyStatus.fullCapacity:
+        return 10;
     }
   }
 
@@ -141,12 +150,19 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         children: [
           // Map
           GoogleMap(
-            initialCameraPosition: CameraPosition(target: _mapCenter, zoom: 13.5),
-            onMapCreated: (ctrl) => _mapController = ctrl,
+            initialCameraPosition: CameraPosition(
+              target: _mapCenter,
+              zoom: 13.5,
+            ),
+            onMapCreated: (ctrl) {
+              _mapController = ctrl;
+              _buildMapElements();
+            },
             markers: _markers,
             polylines: _polylines,
-            myLocationEnabled:
-                context.read<AppProvider>().locationPermissionGranted,
+            myLocationEnabled: context
+                .read<AppProvider>()
+                .locationPermissionGranted,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             mapToolbarEnabled: false,
@@ -161,8 +177,11 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.menu, color: Colors.white, size: 
-28),
+                    child: const Icon(
+                      Icons.menu,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -175,14 +194,16 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                       child: const Row(
                         children: [
                           SizedBox(width: 12),
-                          Icon(Icons.search, color: Colors.white70, size: 20)
-,
+                          Icon(Icons.search, color: Colors.white70, size: 20),
                           SizedBox(width: 8),
-                          Text('SEARCH',
-                              style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                  letterSpacing: 1)),
+                          Text(
+                            'SEARCH',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              letterSpacing: 1,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -225,14 +246,17 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.location_on, color: Colors.white, size: 18),      
+                Icon(Icons.location_on, color: Colors.white, size: 18),
                 SizedBox(width: 6),
-                Text('ROUTES',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        letterSpacing: 1)),
+                Text(
+                  'ROUTES',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1,
+                  ),
+                ),
               ],
             ),
           ),
@@ -269,12 +293,13 @@ class _EstimatedCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF4DD0E1), width: 2),    
+            border: Border.all(color: const Color(0xFF4DD0E1), width: 2),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.12),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4)),
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
             ],
           ),
           child: Column(
@@ -284,21 +309,24 @@ class _EstimatedCard extends StatelessWidget {
               Transform.translate(
                 offset: const Offset(0, -12),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3)
-,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(color: Colors.red.shade400, width: 1.5
-),
+                    border: Border.all(color: Colors.red.shade400, width: 1.5),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text('ESTIMATED',
-                      style: TextStyle(
-                          color: Colors.red.shade400,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5)),
+                  child: Text(
+                    'ESTIMATED',
+                    style: TextStyle(
+                      color: Colors.red.shade400,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
               ),
               Padding(
@@ -309,28 +337,40 @@ class _EstimatedCard extends StatelessWidget {
                     // ETA row
                     Row(
                       children: [
-                        const Icon(Icons.access_time,
-                            size: 22, color: Colors.black87),
+                        const Icon(
+                          Icons.access_time,
+                          size: 22,
+                          color: Colors.black87,
+                        ),
                         const SizedBox(width: 8),
-                        Text(': $etaMinutes mins',
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87)),
+                        Text(
+                          ': $etaMinutes mins',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     // Occupancy row
                     Row(
                       children: [
-                        const Icon(Icons.airline_seat_recline_extra,
-                            size: 22, color: Colors.black87),
+                        const Icon(
+                          Icons.airline_seat_recline_extra,
+                          size: 22,
+                          color: Colors.black87,
+                        ),
                         const SizedBox(width: 8),
-                        Text(': $occupancyLabel',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87)),
+                        Text(
+                          ': $occupancyLabel',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -371,9 +411,9 @@ class _OccupancyBar extends StatelessWidget {
         return Container(
           width: 12,
           height: 16,
-          margin: const EdgeInsets.only(right: 2),
+          margin: EdgeInsets.only(right: i < 9 ? 1 : 0),
           decoration: BoxDecoration(
-            color: active ? _colorForIndex(i) : Colors.grey.shade200,        
+            color: active ? _colorForIndex(i) : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(2),
           ),
         );
@@ -398,31 +438,34 @@ class _NoticeCard extends StatelessWidget {
         border: Border.all(color: Colors.red.shade200),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: Colors.red.shade600, size: 18),   
+          Icon(Icons.error_outline, color: Colors.red.shade600, size: 18),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('NOTICE',
-                    style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5)),
+                Text(
+                  'NOTICE',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   'Occupancy Status was last updated $staleMinutes mins ago, capacity may vary.',
-                  style:
-                      TextStyle(color: Colors.red.shade700, fontSize: 10),   
+                  style: TextStyle(color: Colors.red.shade700, fontSize: 10),
                 ),
               ],
             ),
@@ -438,8 +481,11 @@ class _RouteInfoCard extends StatelessWidget {
   final BusRoute route;
   final BusStop? nearestStop;
   final int nearestMinutes;
-  const _RouteInfoCard(
-      {required this.route, this.nearestStop, required this.nearestMinutes});
+  const _RouteInfoCard({
+    required this.route,
+    this.nearestStop,
+    required this.nearestMinutes,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -451,9 +497,10 @@ class _RouteInfoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 3)),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
@@ -465,18 +512,26 @@ class _RouteInfoCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(6)),
-                child: const Icon(Icons.directions_bus,
-                    color: Colors.white, size: 14),
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(
+                  Icons.directions_bus,
+                  color: Colors.white,
+                  size: 14,
+                ),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(route.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 11),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                child: Text(
+                  route.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -485,13 +540,15 @@ class _RouteInfoCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.location_on, color: AppColors.primary, size: 13), 
+                Icon(Icons.location_on, color: AppColors.primary, size: 13),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     '${nearestStop!.name}\n($nearestMinutes mins)',
                     style: const TextStyle(
-                        fontSize: 10, fontWeight: FontWeight.w500),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],

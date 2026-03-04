@@ -211,7 +211,7 @@ class _BottomNav extends StatelessWidget {
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 62,
+          height: 80,
           child: Stack(
             children: [
               // Nav items
@@ -308,4 +308,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-

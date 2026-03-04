@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
 import 'auth/role_selection_screen.dart';
@@ -10,14 +10,60 @@ class LocationPermissionScreen extends StatelessWidget {
 
   Future<void> _openSettings(BuildContext context) async {
     final provider = context.read<AppProvider>();
-    final granted = await provider.requestLocationPermission();
-    if (granted && context.mounted) {
-      _navigateToMain(context);
-    } else {
-      // Try to open device settings
-      const url = 'app-settings:';
-      if (await canLaunchUrl(Uri.parse(url))) {
-        await launchUrl(Uri.parse(url));
+
+    // Check if location service is enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location service is disabled, open location settings
+      bool opened = await Geolocator.openLocationSettings();
+      if (opened && context.mounted) {
+        // After opening settings, try requesting permission again
+        final granted = await provider.requestLocationPermission();
+        if (granted) {
+          _navigateToMain(context);
+        }
+      }
+      return;
+    }
+
+    // Request location permission
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permission was permanently denied, open app settings
+      bool opened = await Geolocator.openAppSettings();
+      if (opened && context.mounted) {
+        // After opening settings, check permission again
+        final granted = await provider.requestLocationPermission();
+        if (granted) {
+          _navigateToMain(context);
+        }
+      }
+      return;
+    }
+
+    if (permission == LocationPermission.denied) {
+      // Permission still denied, open app settings
+      bool opened = await Geolocator.openAppSettings();
+      if (opened && context.mounted) {
+        // After opening settings, check permission again
+        final granted = await provider.requestLocationPermission();
+        if (granted) {
+          _navigateToMain(context);
+        }
+      }
+      return;
+    }
+
+    // Permission granted
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      if (context.mounted) {
+        _navigateToMain(context);
       }
     }
   }
@@ -43,21 +89,15 @@ class LocationPermissionScreen extends StatelessWidget {
 
               // Logo
               Container(
-                width: 110,
-                height: 110,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: CustomPaint(painter: _SmallLogoPainter()),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/logo.jpg'),
+                    fit: BoxFit.cover,
+                  ),
+                  border: Border.all(color: Colors.white, width: 3),
                 ),
               ),
               const SizedBox(height: 36),

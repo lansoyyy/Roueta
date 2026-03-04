@@ -479,7 +479,11 @@ class _OccupancyDisplay extends StatelessWidget {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
                 SizedBox(width: 6),
                 Text(
                   'STANDING ONLY — Bus is at full capacity',

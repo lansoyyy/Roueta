@@ -20,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-//  Driver profile 
+//  Driver profile
 class _DriverProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -61,10 +61,7 @@ class _DriverProfileView extends StatelessWidget {
               // Greeting
               const Text(
                 'Maayong Adlaw,',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 16),
               ),
               const SizedBox(height: 4),
               Text(
@@ -79,7 +76,10 @@ class _DriverProfileView extends StatelessWidget {
 
               // Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -87,7 +87,11 @@ class _DriverProfileView extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.badge_outlined, color: Colors.white70, size: 14),
+                    const Icon(
+                      Icons.badge_outlined,
+                      color: Colors.white70,
+                      size: 14,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '${auth.driverBadge ?? ''}    Driver / Konduktor',
@@ -217,7 +221,7 @@ class _DriverProfileView extends StatelessWidget {
   }
 }
 
-//  Passenger profile 
+//  Passenger profile
 class _PassengerProfileView extends StatelessWidget {
   const _PassengerProfileView();
 
@@ -265,7 +269,10 @@ class _PassengerProfileView extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -317,7 +324,11 @@ class _PassengerProfileView extends StatelessWidget {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.drive_eta_rounded, color: Colors.white70, size: 18),
+                      Icon(
+                        Icons.drive_eta_rounded,
+                        color: Colors.white70,
+                        size: 18,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Switch to Driver Mode',
@@ -339,7 +350,7 @@ class _PassengerProfileView extends StatelessWidget {
   }
 }
 
-//  Shared menu item 
+//  Shared menu item
 class _ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -376,10 +387,13 @@ class _ProfileMenuItem extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          const Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 20),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.white38,
+            size: 20,
+          ),
         ],
       ),
     );
   }
 }
-

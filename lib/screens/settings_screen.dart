@@ -106,10 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 8),
 
           // ── Location ───────────────────────────────────────────────
-          _SectionHeader(
-            icon: Icons.location_on_outlined,
-            title: 'Location',
-          ),
+          _SectionHeader(icon: Icons.location_on_outlined, title: 'Location'),
           _ToggleTile(
             icon: Icons.gps_fixed_rounded,
             iconColor: Colors.red,
@@ -230,8 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Close',
-                style: TextStyle(color: AppColors.primary)),
+            child: Text('Close', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
@@ -302,8 +298,7 @@ class _ToggleTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           width: 38,
           height: 38,
@@ -367,8 +362,7 @@ class _SelectTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           width: 38,
           height: 38,
@@ -394,7 +388,11 @@ class _SelectTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded, color: Colors.grey[400], size: 18),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.grey[400],
+              size: 18,
+            ),
           ],
         ),
         onTap: () {
@@ -451,10 +449,7 @@ class _OptionSheet extends StatelessWidget {
           ),
           Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
           ...options.map(
@@ -502,8 +497,7 @@ class _InfoTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           width: 38,
           height: 38,
@@ -556,8 +550,7 @@ class _ActionTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: Container(
           width: 38,
           height: 38,
