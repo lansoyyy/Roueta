@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
+import '../providers/auth_provider.dart';
+import '../screens/auth/driver_login_screen.dart';
+import '../screens/notifications_screen.dart';
+import '../screens/help_feedback_screen.dart';
+import '../screens/settings_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -9,6 +14,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
+    final auth = context.watch<AuthProvider>();
 
     return Drawer(
       backgroundColor: Colors.white,
@@ -78,8 +84,18 @@ class AppDrawer extends StatelessWidget {
                         icon: Icons.drive_eta,
                         isActive: provider.userMode == UserMode.driver,
                         onTap: () {
-                          provider.setUserMode(UserMode.driver);
-                          Navigator.pop(context);
+                          if (auth.isDriverLoggedIn) {
+                            provider.setUserMode(UserMode.driver);
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const DriverLoginScreen(),
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -94,17 +110,19 @@ class AppDrawer extends StatelessWidget {
             _DrawerItem(
               icon: Icons.person_outline,
               label: 'Your Profile',
-              onTap: () {
-                Navigator.pop(context);
-                _showComingSoon(context, 'Profile');
-              },
+              onTap: () => Navigator.pop(context),
             ),
             _DrawerItem(
               icon: Icons.notifications_none,
               label: 'Notifications',
               onTap: () {
                 Navigator.pop(context);
-                _showComingSoon(context, 'Notifications');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                );
               },
             ),
             _DrawerItem(
@@ -112,7 +130,12 @@ class AppDrawer extends StatelessWidget {
               label: 'Help and Feedback',
               onTap: () {
                 Navigator.pop(context);
-                _showComingSoon(context, 'Help and Feedback');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HelpFeedbackScreen(),
+                  ),
+                );
               },
             ),
             _DrawerItem(
@@ -120,7 +143,12 @@ class AppDrawer extends StatelessWidget {
               label: 'Settings',
               onTap: () {
                 Navigator.pop(context);
-                _showComingSoon(context, 'Settings');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsScreen(),
+                  ),
+                );
               },
             ),
 
@@ -144,16 +172,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature – Coming Soon'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
 }
 
 class _ModeTab extends StatelessWidget {

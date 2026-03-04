@@ -3,12 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'core/constants/app_colors.dart';
 import 'providers/app_provider.dart';
+import 'providers/auth_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+
+  // Restore persisted driver session
+  final authProvider = AuthProvider();
+  await authProvider.init();
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -20,8 +26,11 @@ void main() async {
     ),
   );
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider.value(value: authProvider),
+      ],
       child: const RouetaApp(),
     ),
   );

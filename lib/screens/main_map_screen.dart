@@ -3,7 +3,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/app_drawer.dart';
+import 'auth/driver_login_screen.dart';
 import 'passenger/passenger_routes_screen.dart';
 import 'driver/driver_routes_screen.dart';
 import 'profile_screen.dart';
@@ -38,10 +40,23 @@ class _MainMapScreenState extends State<MainMapScreen> {
 
   Widget _buildBody(AppProvider provider) {
     if (_selectedIndex == 0) {
-      // Routes screen (passenger or driver)
-      return provider.userMode == UserMode.driver
-          ? const DriverRoutesScreen()
-          : const PassengerRoutesScreen();
+      // Driver mode requires authentication
+      if (provider.userMode == UserMode.driver) {
+        final auth = context.read<AuthProvider>();
+        if (!auth.isDriverLoggedIn) {
+          // Silently fall back to passenger and prompt login
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            provider.setUserMode(UserMode.passenger);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DriverLoginScreen()),
+            );
+          });
+          return const PassengerRoutesScreen();
+        }
+        return const DriverRoutesScreen();
+      }
+      return const PassengerRoutesScreen();
     }
 
     if (_selectedIndex == 2) {

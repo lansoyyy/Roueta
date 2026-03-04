@@ -315,13 +315,14 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
             ),
           ),
 
-          // Occupancy status buttons
+          // Occupancy status panel
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ── Section label ────────────────────────────────────
                 const Text(
                   'UPDATE OCCUPANCY STATUS',
                   style: TextStyle(
@@ -331,12 +332,21 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+
+                // ── Occupancy percentage display ─────────────────────
+                if (provider.driverOccupancy != null) ...[
+                  _OccupancyDisplay(status: provider.driverOccupancy!),
+                  const SizedBox(height: 10),
+                ],
+
+                // ── Three selector buttons ───────────────────────────
                 Row(
                   children: [
                     Expanded(
                       child: _OccupancyBtn(
                         label: 'Seat Available',
+                        sublabel: '~33%',
                         color: AppColors.statusOperating,
                         isSelected:
                             provider.driverOccupancy ==
@@ -350,6 +360,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     Expanded(
                       child: _OccupancyBtn(
                         label: 'Limited Seats',
+                        sublabel: '~67%',
                         color: AppColors.accent,
                         isSelected:
                             provider.driverOccupancy ==
@@ -362,7 +373,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: _OccupancyBtn(
-                        label: 'Full Sitting and Standing Capacity',
+                        label: 'Full Capacity',
+                        sublabel: '~95%',
                         color: AppColors.statusUnavailable,
                         isSelected:
                             provider.driverOccupancy ==
@@ -374,6 +386,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     ),
                   ],
                 ),
+
+                const SizedBox(height: 6),
               ],
             ),
           ),
@@ -407,14 +421,134 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   }
 }
 
+class _OccupancyDisplay extends StatelessWidget {
+  final OccupancyStatus status;
+  const _OccupancyDisplay({required this.status});
+
+  double get _percentage {
+    switch (status) {
+      case OccupancyStatus.seatAvailable:
+        return 0.33;
+      case OccupancyStatus.limitedSeats:
+        return 0.67;
+      case OccupancyStatus.fullCapacity:
+        return 0.95;
+    }
+  }
+
+  Color get _barColor {
+    switch (status) {
+      case OccupancyStatus.seatAvailable:
+        return AppColors.statusOperating;
+      case OccupancyStatus.limitedSeats:
+        return AppColors.accent;
+      case OccupancyStatus.fullCapacity:
+        return AppColors.statusUnavailable;
+    }
+  }
+
+  String get _label {
+    switch (status) {
+      case OccupancyStatus.seatAvailable:
+        return 'Seats Available';
+      case OccupancyStatus.limitedSeats:
+        return 'Limited Seats';
+      case OccupancyStatus.fullCapacity:
+        return 'Full Capacity';
+    }
+  }
+
+  bool get _isStandingOnly => _percentage >= 0.9;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (_percentage * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Standing-only alert
+        if (_isStandingOnly)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: AppColors.statusUnavailable,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 6),
+                Text(
+                  'STANDING ONLY — Bus is at full capacity',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Percentage row
+        Row(
+          children: [
+            Text(
+              '$pct%',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: _barColor,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Segmented progress bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _percentage,
+                      minHeight: 8,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(_barColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _OccupancyBtn extends StatelessWidget {
   final String label;
+  final String sublabel;
   final Color color;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _OccupancyBtn({
     required this.label,
+    required this.sublabel,
     required this.color,
     required this.isSelected,
     required this.onTap,
@@ -426,22 +560,38 @@ class _OccupancyBtn extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.15),
+          color: isSelected ? color : color.withOpacity(0.12),
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: color, width: 2)
-              : Border.all(color: Colors.transparent),
+              : Border.all(color: color.withOpacity(0.3)),
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : color,
-          ),
+        child: Column(
+          children: [
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : color,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              sublabel,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+                color: isSelected
+                    ? Colors.white.withOpacity(0.85)
+                    : color.withOpacity(0.7),
+              ),
+            ),
+          ],
         ),
       ),
     );

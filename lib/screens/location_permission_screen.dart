@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
-import 'main_map_screen.dart';
+import 'auth/role_selection_screen.dart';
 
 class LocationPermissionScreen extends StatelessWidget {
   const LocationPermissionScreen({super.key});
@@ -23,9 +23,9 @@ class LocationPermissionScreen extends StatelessWidget {
   }
 
   void _navigateToMain(BuildContext context) {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const MainMapScreen()));
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const RoleSelectionScreen()),
+    );
   }
 
   @override
