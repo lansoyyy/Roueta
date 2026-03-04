@@ -1,8 +1,30 @@
 import 'package:flutter/material.dart';
-import 'core/theme/app_theme.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'core/constants/app_colors.dart';
+import 'providers/app_provider.dart';
+import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 
-void main() {
-  runApp(const RouetaApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ),
+  );
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AppProvider(),
+      child: const RouetaApp(),
+    ),
+  );
 }
 
 class RouetaApp extends StatelessWidget {
@@ -11,16 +33,18 @@ class RouetaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Roueta',
+      title: 'RouETA',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const Scaffold(
-        body: Center(
-          child: Text('Welcome to Roueta', style: TextStyle(fontSize: 24)),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Urbanist',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
         ),
+        scaffoldBackgroundColor: Colors.white,
       ),
+      home: const SplashScreen(),
     );
   }
 }

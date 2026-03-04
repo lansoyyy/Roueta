@@ -4,20 +4,26 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Colors
-  static const Color primary = Color(0xFF6C63FF);
-  static const Color primaryDark = Color(0xFF5A52D5);
-  static const Color primaryLight = Color(0xFF8B85FF);
+  // Primary Colors - Teal palette matching RouETA brand
+  static const Color primary = Color(0xFF00BCD4);
+  static const Color primaryDark = Color(0xFF00838F);
+  static const Color primaryLight = Color(0xFF4DD0E1);
+  static const Color primaryVeryLight = Color(0xFFE0F7FA);
 
   // Secondary Colors
-  static const Color secondary = Color(0xFF00D4FF);
-  static const Color secondaryDark = Color(0xFF00B8E0);
-  static const Color secondaryLight = Color(0xFF33E0FF);
+  static const Color secondary = Color(0xFF26C6DA);
+  static const Color secondaryDark = Color(0xFF00ACC1);
+  static const Color secondaryLight = Color(0xFF80DEEA);
 
   // Accent Colors
-  static const Color accent = Color(0xFFFF6B6B);
-  static const Color accentDark = Color(0xFFE55555);
-  static const Color accentLight = Color(0xFFFF8585);
+  static const Color accent = Color(0xFFFFB300);
+  static const Color accentDark = Color(0xFFFF8F00);
+  static const Color accentLight = Color(0xFFFFD54F);
+
+  // Status Colors
+  static const Color statusOperating = Color(0xFF4CAF50);
+  static const Color statusStandby = Color(0xFF9E9E9E);
+  static const Color statusUnavailable = Color(0xFFE53935);
 
   // Neutral Colors
   static const Color white = Color(0xFFFFFFFF);
@@ -67,13 +73,19 @@ class AppColors {
 
   // Gradient Colors
   static const List<Color> primaryGradient = [
-    Color(0xFF6C63FF),
-    Color(0xFF00D4FF),
+    Color(0xFF4DD0E1),
+    Color(0xFF00838F),
+  ];
+
+  static const List<Color> splashGradient = [
+    Color(0xFF26C6DA),
+    Color(0xFF00ACC1),
+    Color(0xFF00838F),
   ];
 
   static const List<Color> secondaryGradient = [
-    Color(0xFFFF6B6B),
-    Color(0xFFFFA06B),
+    Color(0xFF80DEEA),
+    Color(0xFF26C6DA),
   ];
 
   // Overlay Colors

@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RouETA needs your location to show nearby bus stops and estimated arrival times.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>RouETA needs your location to show nearby bus stops and estimated arrival times.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>RouETA needs your location to show nearby bus stops and estimated arrival times.</string>
 </dict>
 </plist>

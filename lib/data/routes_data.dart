@@ -1,0 +1,516 @@
+// ============================================================
+// ROUTES DATA FILE
+// Add or modify routes here. Each BusRoute contains:
+//   - id, name, code, origin, destination
+//   - AM/PM operating times
+//   - List of BusStop (with GPS coordinates)
+//   - Polyline points for the route path
+// ============================================================
+
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../models/bus_route.dart';
+
+class RoutesData {
+  static List<BusRoute> get routes => [
+    // ──────────────── ROUTE 1: Toril - GE Torres ────────────────
+    BusRoute(
+      id: 'r1',
+      name: 'Toril - GE Torres Route',
+      code: 'R103',
+      origin: 'Toril',
+      destination: 'GE Torres',
+      amStartTime: '5:00 AM',
+      amEndTime: '10:00 AM',
+      pmStartTime: '12:00 PM',
+      pmEndTime: '9:00 PM',
+      stops: [
+        BusStop(
+          id: 's1_1',
+          name: 'Toril District Hall',
+          position: LatLng(7.0012, 125.4738),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's1_2',
+          name: 'Toril Market',
+          position: LatLng(7.0034, 125.4762),
+          estimatedMinutesFromStart: 5,
+        ),
+        BusStop(
+          id: 's1_3',
+          name: 'Bago Aplaya',
+          position: LatLng(7.0178, 125.4876),
+          estimatedMinutesFromStart: 12,
+        ),
+        BusStop(
+          id: 's1_4',
+          name: 'Matina Pangi',
+          position: LatLng(7.0389, 125.5012),
+          estimatedMinutesFromStart: 20,
+        ),
+        BusStop(
+          id: 's1_5',
+          name: 'Coastal Road (San Jose)',
+          position: LatLng(7.0512, 125.5123),
+          estimatedMinutesFromStart: 28,
+        ),
+        BusStop(
+          id: 's1_6',
+          name: 'Ecoland Terminal',
+          position: LatLng(7.0637, 125.5234),
+          estimatedMinutesFromStart: 35,
+        ),
+        BusStop(
+          id: 's1_7',
+          name: 'Ilustre Avenue',
+          position: LatLng(7.0712, 125.5312),
+          estimatedMinutesFromStart: 42,
+        ),
+        BusStop(
+          id: 's1_8',
+          name: 'San Pedro Street',
+          position: LatLng(7.0745, 125.5356),
+          estimatedMinutesFromStart: 46,
+        ),
+        BusStop(
+          id: 's1_9',
+          name: 'Uyanguren',
+          position: LatLng(7.0778, 125.5398),
+          estimatedMinutesFromStart: 50,
+        ),
+        BusStop(
+          id: 's1_10',
+          name: 'GE Torres Street Terminal',
+          position: LatLng(7.0823, 125.5445),
+          estimatedMinutesFromStart: 55,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.0012, 125.4738),
+        LatLng(7.0034, 125.4762),
+        LatLng(7.0178, 125.4876),
+        LatLng(7.0389, 125.5012),
+        LatLng(7.0512, 125.5123),
+        LatLng(7.0637, 125.5234),
+        LatLng(7.0712, 125.5312),
+        LatLng(7.0745, 125.5356),
+        LatLng(7.0778, 125.5398),
+        LatLng(7.0823, 125.5445),
+      ],
+    ),
+
+    // ──────────────── ROUTE 2: Toril - Roxas ────────────────
+    BusRoute(
+      id: 'r2',
+      name: 'Toril - Roxas Route',
+      code: 'R103',
+      origin: 'Toril',
+      destination: 'Roxas',
+      amStartTime: '5:00 AM',
+      amEndTime: '10:00 AM',
+      pmStartTime: '12:00 PM',
+      pmEndTime: '9:00 PM',
+      stops: [
+        BusStop(
+          id: 's2_1',
+          name: 'Toril District Hall',
+          position: LatLng(7.0012, 125.4738),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's2_2',
+          name: 'Toril Market',
+          position: LatLng(7.0034, 125.4762),
+          estimatedMinutesFromStart: 5,
+        ),
+        BusStop(
+          id: 's2_3',
+          name: 'Bago Aplaya',
+          position: LatLng(7.0178, 125.4876),
+          estimatedMinutesFromStart: 12,
+        ),
+        BusStop(
+          id: 's2_4',
+          name: 'Matina Pangi',
+          position: LatLng(7.0389, 125.5012),
+          estimatedMinutesFromStart: 20,
+        ),
+        BusStop(
+          id: 's2_5',
+          name: 'Coastal Road (San Jose)',
+          position: LatLng(7.0512, 125.5123),
+          estimatedMinutesFromStart: 28,
+        ),
+        BusStop(
+          id: 's2_6',
+          name: 'Ecoland Terminal',
+          position: LatLng(7.0637, 125.5234),
+          estimatedMinutesFromStart: 35,
+        ),
+        BusStop(
+          id: 's2_7',
+          name: 'Felcris Centrale',
+          position: LatLng(7.0712, 125.5398),
+          estimatedMinutesFromStart: 42,
+        ),
+        BusStop(
+          id: 's2_8',
+          name: 'GAISANO Mall',
+          position: LatLng(7.0734, 125.5445),
+          estimatedMinutesFromStart: 46,
+        ),
+        BusStop(
+          id: 's2_9',
+          name: 'Claveria Street',
+          position: LatLng(7.0756, 125.5489),
+          estimatedMinutesFromStart: 50,
+        ),
+        BusStop(
+          id: 's2_10',
+          name: 'Roxas Avenue Terminal',
+          position: LatLng(7.0823, 125.5534),
+          estimatedMinutesFromStart: 56,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.0012, 125.4738),
+        LatLng(7.0034, 125.4762),
+        LatLng(7.0178, 125.4876),
+        LatLng(7.0389, 125.5012),
+        LatLng(7.0512, 125.5123),
+        LatLng(7.0637, 125.5234),
+        LatLng(7.0712, 125.5398),
+        LatLng(7.0734, 125.5445),
+        LatLng(7.0756, 125.5489),
+        LatLng(7.0823, 125.5534),
+      ],
+    ),
+
+    // ──────────────── ROUTE 3: Mintal - GE Torres ────────────────
+    BusRoute(
+      id: 'r3',
+      name: 'Mintal - GE Torres Route',
+      code: 'R103',
+      origin: 'Mintal',
+      destination: 'GE Torres',
+      amStartTime: '5:30 AM',
+      amEndTime: '10:30 AM',
+      pmStartTime: '12:30 PM',
+      pmEndTime: '8:30 PM',
+      stops: [
+        BusStop(
+          id: 's3_1',
+          name: 'Mintal Terminal',
+          position: LatLng(7.1234, 125.4312),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's3_2',
+          name: 'Mintal Market',
+          position: LatLng(7.1198, 125.4389),
+          estimatedMinutesFromStart: 5,
+        ),
+        BusStop(
+          id: 's3_3',
+          name: 'Catalunan Grande',
+          position: LatLng(7.1012, 125.4512),
+          estimatedMinutesFromStart: 15,
+        ),
+        BusStop(
+          id: 's3_4',
+          name: 'Ma-a',
+          position: LatLng(7.0834, 125.4678),
+          estimatedMinutesFromStart: 25,
+        ),
+        BusStop(
+          id: 's3_5',
+          name: 'NCCC Mall',
+          position: LatLng(7.0756, 125.4812),
+          estimatedMinutesFromStart: 33,
+        ),
+        BusStop(
+          id: 's3_6',
+          name: 'Communal',
+          position: LatLng(7.0689, 125.5023),
+          estimatedMinutesFromStart: 40,
+        ),
+        BusStop(
+          id: 's3_7',
+          name: 'Ilustre Avenue',
+          position: LatLng(7.0712, 125.5312),
+          estimatedMinutesFromStart: 52,
+        ),
+        BusStop(
+          id: 's3_8',
+          name: 'San Pedro Street',
+          position: LatLng(7.0745, 125.5356),
+          estimatedMinutesFromStart: 56,
+        ),
+        BusStop(
+          id: 's3_9',
+          name: 'Uyanguren',
+          position: LatLng(7.0778, 125.5398),
+          estimatedMinutesFromStart: 60,
+        ),
+        BusStop(
+          id: 's3_10',
+          name: 'GE Torres Street Terminal',
+          position: LatLng(7.0823, 125.5445),
+          estimatedMinutesFromStart: 65,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.1234, 125.4312),
+        LatLng(7.1198, 125.4389),
+        LatLng(7.1012, 125.4512),
+        LatLng(7.0834, 125.4678),
+        LatLng(7.0756, 125.4812),
+        LatLng(7.0689, 125.5023),
+        LatLng(7.0712, 125.5312),
+        LatLng(7.0745, 125.5356),
+        LatLng(7.0778, 125.5398),
+        LatLng(7.0823, 125.5445),
+      ],
+    ),
+
+    // ──────────────── ROUTE 4: Mintal - Roxas ────────────────
+    BusRoute(
+      id: 'r4',
+      name: 'Mintal - Roxas Route',
+      code: 'R103',
+      origin: 'Mintal',
+      destination: 'Roxas',
+      amStartTime: '5:30 AM',
+      amEndTime: '10:30 AM',
+      pmStartTime: '12:30 PM',
+      pmEndTime: '8:30 PM',
+      stops: [
+        BusStop(
+          id: 's4_1',
+          name: 'Mintal Terminal',
+          position: LatLng(7.1234, 125.4312),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's4_2',
+          name: 'Mintal Market',
+          position: LatLng(7.1198, 125.4389),
+          estimatedMinutesFromStart: 5,
+        ),
+        BusStop(
+          id: 's4_3',
+          name: 'Catalunan Grande',
+          position: LatLng(7.1012, 125.4512),
+          estimatedMinutesFromStart: 15,
+        ),
+        BusStop(
+          id: 's4_4',
+          name: 'Ma-a',
+          position: LatLng(7.0834, 125.4678),
+          estimatedMinutesFromStart: 25,
+        ),
+        BusStop(
+          id: 's4_5',
+          name: 'NCCC Mall',
+          position: LatLng(7.0756, 125.4812),
+          estimatedMinutesFromStart: 33,
+        ),
+        BusStop(
+          id: 's4_6',
+          name: 'Communal',
+          position: LatLng(7.0689, 125.5023),
+          estimatedMinutesFromStart: 40,
+        ),
+        BusStop(
+          id: 's4_7',
+          name: 'Felcris Centrale',
+          position: LatLng(7.0712, 125.5398),
+          estimatedMinutesFromStart: 52,
+        ),
+        BusStop(
+          id: 's4_8',
+          name: 'GAISANO Mall',
+          position: LatLng(7.0734, 125.5445),
+          estimatedMinutesFromStart: 56,
+        ),
+        BusStop(
+          id: 's4_9',
+          name: 'Claveria Street',
+          position: LatLng(7.0756, 125.5489),
+          estimatedMinutesFromStart: 60,
+        ),
+        BusStop(
+          id: 's4_10',
+          name: 'Roxas Avenue Terminal',
+          position: LatLng(7.0823, 125.5534),
+          estimatedMinutesFromStart: 66,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.1234, 125.4312),
+        LatLng(7.1198, 125.4389),
+        LatLng(7.1012, 125.4512),
+        LatLng(7.0834, 125.4678),
+        LatLng(7.0756, 125.4812),
+        LatLng(7.0689, 125.5023),
+        LatLng(7.0712, 125.5398),
+        LatLng(7.0734, 125.5445),
+        LatLng(7.0756, 125.5489),
+        LatLng(7.0823, 125.5534),
+      ],
+    ),
+
+    // ──────────────── ROUTE 5: Bangkal - Roxas ────────────────
+    BusRoute(
+      id: 'r5',
+      name: 'Bangkal - Roxas Route',
+      code: 'R103',
+      origin: 'Bangkal',
+      destination: 'Roxas',
+      amStartTime: '5:00 AM',
+      amEndTime: '10:00 AM',
+      pmStartTime: '1:00 PM',
+      pmEndTime: '8:00 PM',
+      stops: [
+        BusStop(
+          id: 's5_1',
+          name: 'Bangkal Terminal',
+          position: LatLng(7.1456, 125.4956),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's5_2',
+          name: 'Bangkal Market',
+          position: LatLng(7.1412, 125.5012),
+          estimatedMinutesFromStart: 5,
+        ),
+        BusStop(
+          id: 's5_3',
+          name: 'Buhangin Proper',
+          position: LatLng(7.1256, 125.5089),
+          estimatedMinutesFromStart: 12,
+        ),
+        BusStop(
+          id: 's5_4',
+          name: 'SM Lanang',
+          position: LatLng(7.1123, 125.5145),
+          estimatedMinutesFromStart: 20,
+        ),
+        BusStop(
+          id: 's5_5',
+          name: 'Agdao',
+          position: LatLng(7.0945, 125.5234),
+          estimatedMinutesFromStart: 28,
+        ),
+        BusStop(
+          id: 's5_6',
+          name: 'Bankerohan',
+          position: LatLng(7.0823, 125.5312),
+          estimatedMinutesFromStart: 35,
+        ),
+        BusStop(
+          id: 's5_7',
+          name: 'Felcris Centrale',
+          position: LatLng(7.0712, 125.5398),
+          estimatedMinutesFromStart: 43,
+        ),
+        BusStop(
+          id: 's5_8',
+          name: 'GAISANO Mall',
+          position: LatLng(7.0734, 125.5445),
+          estimatedMinutesFromStart: 47,
+        ),
+        BusStop(
+          id: 's5_9',
+          name: 'Claveria Street',
+          position: LatLng(7.0756, 125.5489),
+          estimatedMinutesFromStart: 51,
+        ),
+        BusStop(
+          id: 's5_10',
+          name: 'Roxas Avenue Terminal',
+          position: LatLng(7.0823, 125.5534),
+          estimatedMinutesFromStart: 56,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.1456, 125.4956),
+        LatLng(7.1412, 125.5012),
+        LatLng(7.1256, 125.5089),
+        LatLng(7.1123, 125.5145),
+        LatLng(7.0945, 125.5234),
+        LatLng(7.0823, 125.5312),
+        LatLng(7.0712, 125.5398),
+        LatLng(7.0734, 125.5445),
+        LatLng(7.0756, 125.5489),
+        LatLng(7.0823, 125.5534),
+      ],
+    ),
+
+    // ──────────────── ROUTE 6: Talomo - Roxas ────────────────
+    BusRoute(
+      id: 'r6',
+      name: 'Talomo - Roxas Route',
+      code: 'R104',
+      origin: 'Talomo',
+      destination: 'Roxas',
+      amStartTime: '6:00 AM',
+      amEndTime: '10:00 AM',
+      pmStartTime: '1:00 PM',
+      pmEndTime: '8:00 PM',
+      stops: [
+        BusStop(
+          id: 's6_1',
+          name: 'Talomo Terminal',
+          position: LatLng(7.0156, 125.4634),
+          estimatedMinutesFromStart: 0,
+        ),
+        BusStop(
+          id: 's6_2',
+          name: 'Baliok',
+          position: LatLng(7.0234, 125.4712),
+          estimatedMinutesFromStart: 6,
+        ),
+        BusStop(
+          id: 's6_3',
+          name: 'Matina Aplaya',
+          position: LatLng(7.0389, 125.4856),
+          estimatedMinutesFromStart: 15,
+        ),
+        BusStop(
+          id: 's6_4',
+          name: 'Matina Crossing',
+          position: LatLng(7.0534, 125.5012),
+          estimatedMinutesFromStart: 23,
+        ),
+        BusStop(
+          id: 's6_5',
+          name: 'Ecoland Terminal',
+          position: LatLng(7.0637, 125.5234),
+          estimatedMinutesFromStart: 31,
+        ),
+        BusStop(
+          id: 's6_6',
+          name: 'Felcris Centrale',
+          position: LatLng(7.0712, 125.5398),
+          estimatedMinutesFromStart: 38,
+        ),
+        BusStop(
+          id: 's6_7',
+          name: 'Roxas Avenue Terminal',
+          position: LatLng(7.0823, 125.5534),
+          estimatedMinutesFromStart: 46,
+        ),
+      ],
+      polylinePoints: [
+        LatLng(7.0156, 125.4634),
+        LatLng(7.0234, 125.4712),
+        LatLng(7.0389, 125.4856),
+        LatLng(7.0534, 125.5012),
+        LatLng(7.0637, 125.5234),
+        LatLng(7.0712, 125.5398),
+        LatLng(7.0823, 125.5534),
+      ],
+    ),
+  ];
+}
