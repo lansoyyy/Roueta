@@ -4,6 +4,10 @@ enum RouteStatus { operating, onStandby, unavailable }
 
 enum OccupancyStatus { seatAvailable, limitedSeats, fullCapacity }
 
+enum RouteShift { am, pm }
+
+enum RouteDirection { outbound, inbound }
+
 class BusStop {
   final String id;
   final String name;
@@ -18,6 +22,32 @@ class BusStop {
   });
 }
 
+class RouteVariant {
+  final String id;
+  final String label;
+  final RouteShift shift;
+  final RouteDirection direction;
+  final List<BusStop> stops;
+  final List<LatLng> polylinePoints;
+
+  const RouteVariant({
+    required this.id,
+    required this.label,
+    required this.shift,
+    required this.direction,
+    required this.stops,
+    required this.polylinePoints,
+  });
+
+  String get shortLabel {
+    final shiftText = shift == RouteShift.am ? 'AM' : 'PM';
+    final dirText = direction == RouteDirection.outbound
+        ? 'Outbound'
+        : 'Inbound';
+    return '$shiftText • $dirText';
+  }
+}
+
 class BusRoute {
   final String id;
   final String name;
@@ -28,8 +58,9 @@ class BusRoute {
   final String amEndTime;
   final String pmStartTime;
   final String pmEndTime;
-  final List<BusStop> stops;
-  final List<LatLng> polylinePoints;
+  final Map<String, RouteVariant> variants;
+  final String defaultVariantId;
+  String? _selectedVariantId;
   RouteStatus status;
   OccupancyStatus? occupancyStatus;
   DateTime? occupancyLastUpdated;
@@ -45,13 +76,42 @@ class BusRoute {
     required this.amEndTime,
     required this.pmStartTime,
     required this.pmEndTime,
-    required this.stops,
-    required this.polylinePoints,
+    required this.variants,
+    required this.defaultVariantId,
     this.status = RouteStatus.onStandby,
     this.occupancyStatus,
     this.occupancyLastUpdated,
     this.currentStopIndex = 0,
-  });
+  }) : _selectedVariantId = defaultVariantId;
+
+  RouteVariant get defaultVariant =>
+      variants[defaultVariantId] ?? variants.values.first;
+
+  String get selectedVariantId => _selectedVariantId ?? defaultVariantId;
+
+  RouteVariant get selectedVariant =>
+      variants[selectedVariantId] ?? defaultVariant;
+
+  List<RouteVariant> get orderedVariants => variants.values.toList();
+
+  RouteVariant? variantById(String id) => variants[id];
+
+  void selectVariant(String? variantId) {
+    if (variantId != null && variants.containsKey(variantId)) {
+      _selectedVariantId = variantId;
+    } else {
+      _selectedVariantId = defaultVariantId;
+    }
+  }
+
+  // Compatibility getters to avoid breaking existing screen code.
+  List<BusStop> get stops => selectedVariant.stops;
+
+  List<LatLng> get polylinePoints => selectedVariant.polylinePoints;
+
+  List<String> get allStopNames => {
+    for (final v in variants.values) ...v.stops.map((s) => s.name),
+  }.toList(growable: false);
 
   LatLng get startPosition => stops.first.position;
   LatLng get endPosition => stops.last.position;

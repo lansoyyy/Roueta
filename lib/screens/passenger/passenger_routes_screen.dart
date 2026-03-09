@@ -51,11 +51,17 @@ class PassengerRoutesScreen extends StatelessWidget {
                   itemBuilder: (_, i) => _PassengerRouteCard(
                     route: routes[i],
                     onStart: () {
-                      provider.selectRoute(routes[i]);
+                      provider.selectRoute(
+                        routes[i],
+                        variantId: routes[i].defaultVariantId,
+                      );
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => RouteMapScreen(route: routes[i]),
+                          builder: (_) => RouteMapScreen(
+                            route: routes[i],
+                            initialVariantId: routes[i].defaultVariantId,
+                          ),
                         ),
                       );
                     },

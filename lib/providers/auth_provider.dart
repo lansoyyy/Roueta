@@ -30,8 +30,8 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get initialized => _initialized;
 
-  // Hardcoded demo driver accounts
-  // In production, replace with API calls
+  // Fixed local driver/konduktor accounts.
+  // Authentication is intentionally local-only (store/get from device).
   static const List<DriverAccount> _accounts = [
     DriverAccount(
       username: 'driver01',

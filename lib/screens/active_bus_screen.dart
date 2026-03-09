@@ -8,7 +8,13 @@ import '../providers/app_provider.dart';
 
 class ActiveBusScreen extends StatefulWidget {
   final BusRoute route;
-  const ActiveBusScreen({super.key, required this.route});
+  final String? initialVariantId;
+
+  const ActiveBusScreen({
+    super.key,
+    required this.route,
+    this.initialVariantId,
+  });
 
   @override
   State<ActiveBusScreen> createState() => _ActiveBusScreenState();
@@ -21,10 +27,23 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   int _currentStopIdx = 0;
   int _minutesToNext = 2;
   Timer? _timer;
+  late String _variantId;
+
+  RouteVariant get _variant =>
+      widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
+
+  List<BusStop> get _stops => _variant.stops;
 
   @override
   void initState() {
     super.initState();
+    final provider = context.read<AppProvider>();
+    _variantId =
+        widget.initialVariantId ??
+        provider.activeDriverVariantId ??
+        widget.route.defaultVariantId;
+    widget.route.selectVariant(_variantId);
+
     _buildMapElements();
     _startSimulation();
   }
@@ -36,12 +55,28 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     super.dispose();
   }
 
-  void _buildMapElements() {
-    final markers = <Marker>{};
-    final route = widget.route;
+  void _changeVariant(String variantId) {
+    setState(() {
+      _variantId = variantId;
+      _currentStopIdx = 0;
+      _minutesToNext = 2;
+      widget.route.selectVariant(variantId);
+    });
 
-    for (int i = 0; i < route.stops.length; i++) {
-      final stop = route.stops[i];
+    context.read<AppProvider>().setActiveDriverRoute(
+      widget.route,
+      variantId: variantId,
+    );
+    _buildMapElements();
+  }
+
+  void _buildMapElements() {
+    if (_stops.isEmpty) return;
+
+    final markers = <Marker>{};
+
+    for (int i = 0; i < _stops.length; i++) {
+      final stop = _stops[i];
       markers.add(
         Marker(
           markerId: MarkerId(stop.id),
@@ -57,8 +92,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     }
 
     final polyline = Polyline(
-      polylineId: PolylineId(route.id),
-      points: route.polylinePoints,
+      polylineId: PolylineId('${widget.route.id}_${_variant.id}'),
+      points: _variant.polylinePoints,
       color: AppColors.primaryDark,
       width: 5,
       startCap: Cap.roundCap,
@@ -74,15 +109,19 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   void _startSimulation() {
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (!mounted) return;
+      if (_stops.isEmpty) return;
+
       setState(() {
         if (_minutesToNext > 1) {
           _minutesToNext--;
         } else {
-          // Advance to next stop
-          if (_currentStopIdx + 1 < widget.route.stops.length) {
+          if (_currentStopIdx + 1 < _stops.length) {
             _currentStopIdx++;
             _minutesToNext = 3;
-            _buildMapElements(); // refresh markers
+            context.read<AppProvider>().updateActiveStopProgress(
+              _currentStopIdx,
+            );
+            _buildMapElements();
           }
         }
       });
@@ -90,16 +129,18 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   }
 
   BusStop? get _nextStop {
-    if (_currentStopIdx + 1 < widget.route.stops.length) {
-      return widget.route.stops[_currentStopIdx + 1];
+    if (_stops.isEmpty) return null;
+    if (_currentStopIdx + 1 < _stops.length) {
+      return _stops[_currentStopIdx + 1];
     }
-    return widget.route.stops.last;
+    return _stops.last;
   }
 
   LatLng get _mapCenter {
-    final pts = widget.route.polylinePoints;
+    final pts = _variant.polylinePoints;
     if (pts.isEmpty) return const LatLng(7.0644, 125.5214);
-    double lat = 0, lng = 0;
+    double lat = 0;
+    double lng = 0;
     for (final p in pts) {
       lat += p.latitude;
       lng += p.longitude;
@@ -114,7 +155,6 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     return Scaffold(
       body: Column(
         children: [
-          // Top app bar
           Container(
             color: AppColors.primary,
             padding: EdgeInsets.only(
@@ -134,8 +174,6 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
               ],
             ),
           ),
-
-          // "THE BUS YOU ARE OPERATING" banner
           Container(
             width: double.infinity,
             color: AppColors.primary,
@@ -151,8 +189,6 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
               ),
             ),
           ),
-
-          // Route info card
           Container(
             margin: const EdgeInsets.all(12),
             padding: const EdgeInsets.all(14),
@@ -161,85 +197,113 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
               border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Row(
+            child: Column(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.navigation,
-                    color: Colors.grey,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.route.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          widget.route.code,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w600,
+                      child: const Icon(
+                        Icons.navigation,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.route.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
+                          const SizedBox(height: 2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              widget.route.code,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.statusOperating,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Operating',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.statusOperating,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Operating',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _variantId,
+                  isDense: true,
+                  items: widget.route.orderedVariants
+                      .map(
+                        (v) => DropdownMenuItem(
+                          value: v.id,
+                          child: Text(v.shortLabel),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) _changeVariant(value);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Operating Variant',
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          // Map
           Expanded(
             child: Stack(
               children: [
@@ -256,8 +320,6 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                   zoomControlsEnabled: false,
                   mapToolbarEnabled: false,
                 ),
-
-                // Approaching notification
                 Positioned(
                   bottom: 16,
                   left: 12,
@@ -272,7 +334,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                         ),
                       ],
@@ -314,15 +376,12 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
               ],
             ),
           ),
-
-          // Occupancy status panel
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Section label ────────────────────────────────────
                 const Text(
                   'UPDATE OCCUPANCY STATUS',
                   style: TextStyle(
@@ -333,14 +392,10 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // ── Occupancy percentage display ─────────────────────
                 if (provider.driverOccupancy != null) ...[
                   _OccupancyDisplay(status: provider.driverOccupancy!),
                   const SizedBox(height: 10),
                 ],
-
-                // ── Three selector buttons ───────────────────────────
                 Row(
                   children: [
                     Expanded(
@@ -386,7 +441,6 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 6),
               ],
             ),
@@ -466,7 +520,6 @@ class _OccupancyDisplay extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Standing-only alert
         if (_isStandingOnly)
           Container(
             width: double.infinity,
@@ -497,8 +550,6 @@ class _OccupancyDisplay extends StatelessWidget {
               ],
             ),
           ),
-
-        // Percentage row
         Row(
           children: [
             Text(
@@ -523,7 +574,6 @@ class _OccupancyDisplay extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Segmented progress bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: LinearProgressIndicator(
@@ -566,11 +616,11 @@ class _OccupancyBtn extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.12),
+          color: isSelected ? color : color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(8),
           border: isSelected
               ? Border.all(color: color, width: 2)
-              : Border.all(color: color.withOpacity(0.3)),
+              : Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -591,8 +641,8 @@ class _OccupancyBtn extends StatelessWidget {
                 fontSize: 9,
                 fontWeight: FontWeight.w500,
                 color: isSelected
-                    ? Colors.white.withOpacity(0.85)
-                    : color.withOpacity(0.7),
+                    ? Colors.white.withValues(alpha: 0.85)
+                    : color.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -610,7 +660,7 @@ class _SearchBar extends StatelessWidget {
     return Container(
       height: 36,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
+        color: Colors.white.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Row(

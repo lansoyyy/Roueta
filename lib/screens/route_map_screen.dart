@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +9,9 @@ import '../services/notification_service.dart';
 
 class RouteMapScreen extends StatefulWidget {
   final BusRoute route;
-  const RouteMapScreen({super.key, required this.route});
+  final String? initialVariantId;
+
+  const RouteMapScreen({super.key, required this.route, this.initialVariantId});
 
   @override
   State<RouteMapScreen> createState() => _RouteMapScreenState();
@@ -23,36 +25,36 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   int _nearestMinutes = 2;
   bool _notificationSent = false;
   Timer? _timer;
-  bool _mapCreated = false;
+  late String _variantId;
 
   OccupancyStatus _routeOccupancy = OccupancyStatus.limitedSeats;
   DateTime _occupancyLastUpdated = DateTime.now().subtract(
     const Duration(minutes: 8),
   );
 
+  RouteVariant get _variant =>
+      widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
+
+  List<BusStop> get _stops => _variant.stops;
+
   @override
   void initState() {
     super.initState();
-    print('===== initState called =====');
-    print('Route: ${widget.route.name}');
-    _simulateApproach();
-    final activeRoute = widget.route;
-    if (activeRoute.occupancyStatus != null) {
-      _routeOccupancy = activeRoute.occupancyStatus!;
+    final provider = context.read<AppProvider>();
+    _variantId =
+        widget.initialVariantId ??
+        provider.selectedVariantId ??
+        widget.route.defaultVariantId;
+    widget.route.selectVariant(_variantId);
+
+    if (widget.route.occupancyStatus != null) {
+      _routeOccupancy = widget.route.occupancyStatus!;
       _occupancyLastUpdated =
-          activeRoute.occupancyLastUpdated ?? DateTime.now();
+          widget.route.occupancyLastUpdated ?? DateTime.now();
     }
-    // Build map elements immediately
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('===== Post frame callback =====');
-      _buildMapElements();
-      // Check if map was created after 5 seconds
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted && !_mapCreated) {
-          print('ERROR: Google Map failed to load after 5 seconds!');
-        }
-      });
-    });
+
+    _buildMapElements();
+    _simulateApproach();
   }
 
   @override
@@ -62,22 +64,34 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     super.dispose();
   }
 
-  void _buildMapElements() {
-    final markers = <Marker>{};
-    final route = widget.route;
-    print('Building map elements for route: ${route.name}');
-    print('Number of stops: ${route.stops.length}');
-    print('Number of polyline points: ${route.polylinePoints.length}');
+  void _changeVariant(String newVariantId) {
+    setState(() {
+      _variantId = newVariantId;
+      widget.route.selectVariant(newVariantId);
+      _nearestMinutes = 2;
+      _notificationSent = false;
+    });
 
-    for (int i = 0; i < route.stops.length; i++) {
-      final stop = route.stops[i];
-      print('Adding marker for stop: ${stop.name} at ${stop.position}');
+    context.read<AppProvider>().selectRoute(
+      widget.route,
+      variantId: newVariantId,
+    );
+    _buildMapElements();
+  }
+
+  void _buildMapElements() {
+    if (_stops.isEmpty) return;
+
+    final markers = <Marker>{};
+
+    for (int i = 0; i < _stops.length; i++) {
+      final stop = _stops[i];
       markers.add(
         Marker(
           markerId: MarkerId(stop.id),
           position: stop.position,
           icon: BitmapDescriptor.defaultMarkerWithHue(
-            i == 0 || i == route.stops.length - 1
+            i == 0 || i == _stops.length - 1
                 ? BitmapDescriptor.hueRed
                 : BitmapDescriptor.hueCyan,
           ),
@@ -85,39 +99,40 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         ),
       );
     }
+
     final polyline = Polyline(
-      polylineId: PolylineId(route.id),
-      points: route.polylinePoints,
+      polylineId: PolylineId('${widget.route.id}_${_variant.id}'),
+      points: _variant.polylinePoints,
       color: const Color(0xFF3F51B5),
       width: 6,
       startCap: Cap.roundCap,
       endCap: Cap.roundCap,
     );
-    print('Adding polyline with ${polyline.points.length} points');
+
     setState(() {
       _markers = markers;
       _polylines = {polyline};
-      _nearestStop = route.stops.length > 1 ? route.stops[1] : route.stops[0];
+      _nearestStop = _stops.length > 1 ? _stops[1] : _stops.first;
     });
-    print('Markers set: ${_markers.length}');
-    print('Polylines set: ${_polylines.length}');
   }
 
   void _simulateApproach() {
     _timer = Timer.periodic(const Duration(seconds: 20), (_) {
-      if (!mounted) return;
+      if (!mounted || _stops.isEmpty || _nearestStop == null) return;
+
       setState(() {
         if (_nearestMinutes > 1) {
           _nearestMinutes--;
         } else {
-          final idx = widget.route.stops.indexOf(_nearestStop!);
-          if (idx + 1 < widget.route.stops.length) {
-            _nearestStop = widget.route.stops[idx + 1];
+          final idx = _stops.indexOf(_nearestStop!);
+          if (idx + 1 < _stops.length) {
+            _nearestStop = _stops[idx + 1];
             _nearestMinutes = 4;
             _notificationSent = false;
           }
         }
       });
+
       if (_nearestMinutes == 2 && !_notificationSent && _nearestStop != null) {
         _notificationSent = true;
         NotificationService().showBusApproachingNotification(
@@ -129,73 +144,199 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   }
 
   LatLng get _mapCenter {
-    final pts = widget.route.polylinePoints;
+    final pts = _variant.polylinePoints;
     if (pts.isEmpty) return const LatLng(7.0644, 125.5214);
-    double lat = 0, lng = 0;
+
+    double lat = 0;
+    double lng = 0;
     for (final p in pts) {
       lat += p.latitude;
       lng += p.longitude;
     }
-    final center = LatLng(lat / pts.length, lng / pts.length);
-    print('Map center calculated: $center');
-    print('First point: ${pts.first}, Last point: ${pts.last}');
-    return center;
+    return LatLng(lat / pts.length, lng / pts.length);
   }
 
   String get _occupancyLabel {
     switch (_routeOccupancy) {
       case OccupancyStatus.seatAvailable:
-        return '30% Full';
+        return 'Seats Available';
       case OccupancyStatus.limitedSeats:
-        return '80% Full';
+        return 'Limited Seats';
       case OccupancyStatus.fullCapacity:
-        return '100% Full';
+        return 'Full Capacity';
     }
   }
 
-  int get _occupancyFilled {
+  Color get _occupancyColor {
     switch (_routeOccupancy) {
       case OccupancyStatus.seatAvailable:
-        return 3;
+        return AppColors.statusOperating;
       case OccupancyStatus.limitedSeats:
-        return 8;
+        return AppColors.accent;
       case OccupancyStatus.fullCapacity:
-        return 10;
+        return AppColors.statusUnavailable;
     }
   }
 
   int get _staleMinutes =>
       DateTime.now().difference(_occupancyLastUpdated).inMinutes;
+
   bool get _isStale => _staleMinutes >= 5;
 
   @override
   Widget build(BuildContext context) {
-    print('Building RouteMapScreen...');
-    print('Map center: $_mapCenter');
-    print('Map created: $_mapCreated');
+    final provider = context.watch<AppProvider>();
 
     return Scaffold(
-      body: GoogleMap(
-        key: const ValueKey('route_map'),
-        initialCameraPosition: CameraPosition(target: _mapCenter, zoom: 13.5),
-        onMapCreated: (ctrl) {
-          print('✓✓✓ Map created successfully! ✓✓✓');
-          print('✓✓✓ Map controller initialized ✓✓✓');
-          _mapController = ctrl;
-          _mapCreated = true;
-        },
-        markers: _markers,
-        polylines: _polylines,
-        myLocationEnabled: true,
-        myLocationButtonEnabled: false,
-        zoomControlsEnabled: false,
-        mapToolbarEnabled: false,
-        buildingsEnabled: true,
-        compassEnabled: false,
-        rotateGesturesEnabled: true,
-        scrollGesturesEnabled: true,
-        tiltGesturesEnabled: true,
-        zoomGesturesEnabled: true,
+      body: Column(
+        children: [
+          Expanded(
+            child: GoogleMap(
+              key: const ValueKey('route_map'),
+              initialCameraPosition: CameraPosition(
+                target: _mapCenter,
+                zoom: 13.5,
+              ),
+              onMapCreated: (ctrl) => _mapController = ctrl,
+              markers: _markers,
+              polylines: _polylines,
+              myLocationEnabled: provider.locationPermissionGranted,
+              myLocationButtonEnabled: false,
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              buildingsEnabled: true,
+              compassEnabled: false,
+            ),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.route.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryVeryLight,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  widget.route.code,
+                                  style: TextStyle(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${_stops.length} stops',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _variantId,
+                  isDense: true,
+                  items: widget.route.orderedVariants
+                      .map(
+                        (v) => DropdownMenuItem(
+                          value: v.id,
+                          child: Text(v.shortLabel),
+                        ),
+                      )
+                      .toList(growable: false),
+                  onChanged: (value) {
+                    if (value != null) _changeVariant(value);
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Trip Variant',
+                    labelStyle: TextStyle(color: Colors.grey[700]),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _nearestStop == null
+                      ? 'No stop data available'
+                      : 'Approaching ${_nearestStop!.name} in $_nearestMinutes mins',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _occupancyColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        _occupancyLabel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (_isStale)
+                      Text(
+                        'Last updated $_staleMinutes mins ago',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

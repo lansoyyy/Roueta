@@ -1,7 +1,10 @@
 import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
+  static const String _kBusApproachNotifs = 'settings_bus_approach_notifs';
+
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
@@ -36,6 +39,10 @@ class NotificationService {
     required String stopName,
     required int minutesAway,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool(_kBusApproachNotifs) ?? true;
+    if (!enabled) return;
+
     await init();
 
     const androidDetails = AndroidNotificationDetails(

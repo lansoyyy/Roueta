@@ -28,7 +28,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider(create: (_) => AppProvider()..initLocalData()),
         ChangeNotifierProvider.value(value: authProvider),
       ],
       child: const RouetaApp(),

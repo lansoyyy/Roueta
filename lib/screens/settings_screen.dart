@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -9,7 +10,17 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // Settings state (persisted in a real app via SharedPreferences)
+  static const String _kBusApproachNotifs = 'settings_bus_approach_notifs';
+  static const String _kOccupancyNotifs = 'settings_occupancy_notifs';
+  static const String _kRouteStatusNotifs = 'settings_route_status_notifs';
+  static const String _kVibrate = 'settings_vibrate';
+  static const String _kMapType = 'settings_map_type';
+  static const String _kShowTraffic = 'settings_show_traffic';
+  static const String _kHighAccuracy = 'settings_high_accuracy';
+  static const String _kAutoCenter = 'settings_auto_center';
+  static const String _kDefaultMode = 'settings_default_mode';
+  static const String _kLanguage = 'settings_language';
+
   bool _busApproachNotifs = true;
   bool _occupancyNotifs = true;
   bool _routeStatusNotifs = false;
@@ -20,6 +31,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _autoCenter = true;
   String _defaultMode = 'Passenger';
   String _language = 'English';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+
+    setState(() {
+      _busApproachNotifs =
+          prefs.getBool(_kBusApproachNotifs) ?? _busApproachNotifs;
+      _occupancyNotifs = prefs.getBool(_kOccupancyNotifs) ?? _occupancyNotifs;
+      _routeStatusNotifs =
+          prefs.getBool(_kRouteStatusNotifs) ?? _routeStatusNotifs;
+      _vibrate = prefs.getBool(_kVibrate) ?? _vibrate;
+      _mapType = prefs.getString(_kMapType) ?? _mapType;
+      _showTraffic = prefs.getBool(_kShowTraffic) ?? _showTraffic;
+      _highAccuracy = prefs.getBool(_kHighAccuracy) ?? _highAccuracy;
+      _autoCenter = prefs.getBool(_kAutoCenter) ?? _autoCenter;
+      _defaultMode = prefs.getString(_kDefaultMode) ?? _defaultMode;
+      _language = prefs.getString(_kLanguage) ?? _language;
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kBusApproachNotifs, _busApproachNotifs);
+    await prefs.setBool(_kOccupancyNotifs, _occupancyNotifs);
+    await prefs.setBool(_kRouteStatusNotifs, _routeStatusNotifs);
+    await prefs.setBool(_kVibrate, _vibrate);
+    await prefs.setString(_kMapType, _mapType);
+    await prefs.setBool(_kShowTraffic, _showTraffic);
+    await prefs.setBool(_kHighAccuracy, _highAccuracy);
+    await prefs.setBool(_kAutoCenter, _autoCenter);
+    await prefs.setString(_kDefaultMode, _defaultMode);
+    await prefs.setString(_kLanguage, _language);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +231,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await _saveSettings();
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('Settings saved'),

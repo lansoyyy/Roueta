@@ -69,6 +69,41 @@ class _MyRoutesScreenState extends State<MyRoutesScreen>
 class _AssignedRoutesTab extends StatelessWidget {
   const _AssignedRoutesTab();
 
+  Future<String?> _pickVariant(BuildContext context, BusRoute route) async {
+    return showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            const Text(
+              'Select Trip Variant',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            ...route.orderedVariants.map(
+              (v) => ListTile(
+                leading: Icon(
+                  v.shift == RouteShift.am
+                      ? Icons.wb_sunny_outlined
+                      : Icons.nightlight_round,
+                  color: AppColors.primary,
+                ),
+                title: Text(v.shortLabel),
+                subtitle: Text('${v.stops.length} stops'),
+                onTap: () => Navigator.pop(context, v.id),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
@@ -149,7 +184,7 @@ class _AssignedRoutesTab extends StatelessWidget {
               return _AssignedRouteCard(
                 route: route,
                 isActive: isActive,
-                onTap: () {
+                onTap: () async {
                   if (route.status == RouteStatus.unavailable) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -162,11 +197,18 @@ class _AssignedRoutesTab extends StatelessWidget {
                     );
                     return;
                   }
-                  provider.setActiveDriverRoute(route);
+
+                  final variantId = await _pickVariant(context, route);
+                  if (variantId == null) return;
+
+                  provider.setActiveDriverRoute(route, variantId: variantId);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ActiveBusScreen(route: route),
+                      builder: (_) => ActiveBusScreen(
+                        route: route,
+                        initialVariantId: variantId,
+                      ),
                     ),
                   ).then((_) => provider.stopDriverRoute());
                 },
@@ -288,7 +330,7 @@ class _AssignedRouteCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${route.stops.length} stops',
+                              '${route.defaultVariant.stops.length} stops',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey[500],
@@ -435,68 +477,11 @@ class _ScheduleChip extends StatelessWidget {
 class _TripHistoryTab extends StatelessWidget {
   const _TripHistoryTab();
 
-  // Demo trip history data
-  static final List<_TripRecord> _trips = [
-    _TripRecord(
-      routeName: 'Toril – GE Torres Route',
-      routeCode: 'R103',
-      date: DateTime.now().subtract(const Duration(hours: 3)),
-      startTime: '6:12 AM',
-      endTime: '7:45 AM',
-      stopsCompleted: 10,
-      totalStops: 10,
-      peakOccupancy: 'Full Capacity',
-      occupancyColor: AppColors.statusUnavailable,
-    ),
-    _TripRecord(
-      routeName: 'Toril – Roxas Route',
-      routeCode: 'R103',
-      date: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-      startTime: '1:05 PM',
-      endTime: '2:33 PM',
-      stopsCompleted: 10,
-      totalStops: 10,
-      peakOccupancy: 'Limited Seats',
-      occupancyColor: AppColors.accent,
-    ),
-    _TripRecord(
-      routeName: 'Mintal – GE Torres Route',
-      routeCode: 'R103',
-      date: DateTime.now().subtract(const Duration(days: 2, hours: 5)),
-      startTime: '7:00 AM',
-      endTime: '8:20 AM',
-      stopsCompleted: 9,
-      totalStops: 10,
-      peakOccupancy: 'Seats Available',
-      occupancyColor: AppColors.statusOperating,
-    ),
-    _TripRecord(
-      routeName: 'Toril – GE Torres Route',
-      routeCode: 'R103',
-      date: DateTime.now().subtract(const Duration(days: 3)),
-      startTime: '5:45 AM',
-      endTime: '7:10 AM',
-      stopsCompleted: 10,
-      totalStops: 10,
-      peakOccupancy: 'Full Capacity',
-      occupancyColor: AppColors.statusUnavailable,
-    ),
-    _TripRecord(
-      routeName: 'Bangkal – Roxas Route',
-      routeCode: 'R103',
-      date: DateTime.now().subtract(const Duration(days: 4, hours: 1)),
-      startTime: '2:00 PM',
-      endTime: '3:15 PM',
-      stopsCompleted: 10,
-      totalStops: 10,
-      peakOccupancy: 'Limited Seats',
-      occupancyColor: AppColors.accent,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    if (_trips.isEmpty) {
+    final trips = context.watch<AppProvider>().driverTripHistory;
+
+    if (trips.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -535,21 +520,21 @@ class _TripHistoryTab extends StatelessWidget {
             children: [
               _StatChip(
                 label: 'Total Trips',
-                value: '${_trips.length}',
+                value: '${trips.length}',
                 icon: Icons.route_rounded,
               ),
               const SizedBox(width: 12),
               _StatChip(
                 label: 'This Week',
                 value:
-                    '${_trips.where((t) => DateTime.now().difference(t.date).inDays < 7).length}',
+                    '${trips.where((t) => DateTime.now().difference(t.startedAt).inDays < 7).length}',
                 icon: Icons.calendar_today_rounded,
               ),
               const SizedBox(width: 12),
               _StatChip(
                 label: 'Stops Done',
                 value:
-                    '${_trips.fold<int>(0, (sum, t) => sum + t.stopsCompleted)}',
+                    '${trips.fold<int>(0, (sum, t) => sum + t.stopsCompleted)}',
                 icon: Icons.location_on_rounded,
               ),
             ],
@@ -559,9 +544,9 @@ class _TripHistoryTab extends StatelessWidget {
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            itemCount: _trips.length,
+            itemCount: trips.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) => _TripCard(trip: _trips[i]),
+            itemBuilder: (_, i) => _TripCard(trip: trips[i]),
           ),
         ),
       ],
@@ -614,7 +599,7 @@ class _StatChip extends StatelessWidget {
 }
 
 class _TripCard extends StatelessWidget {
-  final _TripRecord trip;
+  final DriverTripRecord trip;
   const _TripCard({required this.trip});
 
   String _formatDate(DateTime dt) {
@@ -707,6 +692,25 @@ class _TripCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryVeryLight,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              trip.variantLabel,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: AppColors.primaryDark,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -716,14 +720,14 @@ class _TripCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      _formatDate(trip.date),
+                      _formatDate(trip.startedAt),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
                     ),
                     Text(
-                      '${trip.startTime} – ${trip.endTime}',
+                      '${_time(trip.startedAt)} – ${_time(trip.endedAt)}',
                       style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                     ),
                   ],
@@ -748,8 +752,8 @@ class _TripCard extends StatelessWidget {
                 _TripStat(
                   icon: Icons.people_rounded,
                   label: 'Peak Occupancy',
-                  value: trip.peakOccupancy,
-                  color: trip.occupancyColor,
+                  value: _occupancyLabel(trip.peakOccupancy),
+                  color: _occupancyColor(trip.peakOccupancy),
                 ),
               ],
             ),
@@ -757,6 +761,39 @@ class _TripCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _time(DateTime dt) {
+    final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final suffix = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$h:$m $suffix';
+  }
+
+  String _occupancyLabel(OccupancyStatus? status) {
+    switch (status) {
+      case OccupancyStatus.seatAvailable:
+        return 'Seats Available';
+      case OccupancyStatus.limitedSeats:
+        return 'Limited Seats';
+      case OccupancyStatus.fullCapacity:
+        return 'Full Capacity';
+      case null:
+        return 'Not set';
+    }
+  }
+
+  Color _occupancyColor(OccupancyStatus? status) {
+    switch (status) {
+      case OccupancyStatus.seatAvailable:
+        return AppColors.statusOperating;
+      case OccupancyStatus.limitedSeats:
+        return AppColors.accent;
+      case OccupancyStatus.fullCapacity:
+        return AppColors.statusUnavailable;
+      case null:
+        return Colors.grey;
+    }
   }
 }
 
@@ -800,28 +837,4 @@ class _TripStat extends StatelessWidget {
       ],
     );
   }
-}
-
-class _TripRecord {
-  final String routeName;
-  final String routeCode;
-  final DateTime date;
-  final String startTime;
-  final String endTime;
-  final int stopsCompleted;
-  final int totalStops;
-  final String peakOccupancy;
-  final Color occupancyColor;
-
-  const _TripRecord({
-    required this.routeName,
-    required this.routeCode,
-    required this.date,
-    required this.startTime,
-    required this.endTime,
-    required this.stopsCompleted,
-    required this.totalStops,
-    required this.peakOccupancy,
-    required this.occupancyColor,
-  });
 }

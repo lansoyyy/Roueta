@@ -8,6 +8,41 @@ import '../active_bus_screen.dart';
 class DriverRoutesScreen extends StatelessWidget {
   const DriverRoutesScreen({super.key});
 
+  Future<String?> _pickVariant(BuildContext context, BusRoute route) async {
+    return showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
+            const Text(
+              'Select Trip Variant',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            ...route.orderedVariants.map(
+              (v) => ListTile(
+                leading: Icon(
+                  v.shift == RouteShift.am
+                      ? Icons.wb_sunny_outlined
+                      : Icons.nightlight_round,
+                  color: AppColors.primary,
+                ),
+                title: Text(v.shortLabel),
+                subtitle: Text('${v.stops.length} stops'),
+                onTap: () => Navigator.pop(context, v.id),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
@@ -50,7 +85,7 @@ class DriverRoutesScreen extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (_, i) => _DriverRouteCard(
                     route: routes[i],
-                    onTap: () {
+                    onTap: () async {
                       if (routes[i].status == RouteStatus.unavailable) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -63,11 +98,21 @@ class DriverRoutesScreen extends StatelessWidget {
                         );
                         return;
                       }
-                      provider.setActiveDriverRoute(routes[i]);
+
+                      final variantId = await _pickVariant(context, routes[i]);
+                      if (variantId == null) return;
+
+                      provider.setActiveDriverRoute(
+                        routes[i],
+                        variantId: variantId,
+                      );
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ActiveBusScreen(route: routes[i]),
+                          builder: (_) => ActiveBusScreen(
+                            route: routes[i],
+                            initialVariantId: variantId,
+                          ),
                         ),
                       ).then((_) => provider.stopDriverRoute());
                     },
@@ -203,7 +248,7 @@ class _DriverRouteCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          '${route.stops.length} Stops',
+                          '${route.defaultVariant.stops.length} Stops',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.grey[500],

@@ -11,8 +11,7 @@ class RecentRoutesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
-    // Show all routes as "recently viewed" — in a real app this would be persisted separately
-    final routes = provider.routes;
+    final recentEntries = provider.recentRoutes;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -27,7 +26,6 @@ class RecentRoutesScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Info strip
           Container(
             width: double.infinity,
             color: AppColors.primaryVeryLight,
@@ -51,30 +49,44 @@ class RecentRoutesScreen extends StatelessWidget {
               ],
             ),
           ),
-
           Expanded(
-            child: routes.isEmpty
-                ? _EmptyState()
+            child: recentEntries.isEmpty
+                ? const _EmptyState()
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 14,
                     ),
-                    itemCount: routes.length,
+                    itemCount: recentEntries.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (_, i) => _RecentRouteCard(
-                      route: routes[i],
-                      visitedMinutesAgo: _fakeVisitedTime(i),
-                      onTap: () {
-                        provider.selectRoute(routes[i]);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => RouteMapScreen(route: routes[i]),
-                          ),
-                        );
-                      },
-                    ),
+                    itemBuilder: (_, i) {
+                      final entry = recentEntries[i];
+                      final route = provider.routes.firstWhere(
+                        (r) => r.id == entry.routeId,
+                        orElse: () => provider.routes.first,
+                      );
+
+                      return _RecentRouteCard(
+                        route: route,
+                        variantLabel: entry.variantLabel,
+                        visitedLabel: _formatVisitedLabel(entry.viewedAt),
+                        onTap: () {
+                          provider.selectRoute(
+                            route,
+                            variantId: entry.variantId,
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RouteMapScreen(
+                                route: route,
+                                initialVariantId: entry.variantId,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
           ),
         ],
@@ -82,21 +94,25 @@ class RecentRoutesScreen extends StatelessWidget {
     );
   }
 
-  /// Generate realistic-looking "last visited" timestamps
-  int _fakeVisitedTime(int index) {
-    const times = [5, 23, 60, 180, 320, 720];
-    return times[index % times.length];
+  String _formatVisitedLabel(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} mins ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 }
 
 class _RecentRouteCard extends StatelessWidget {
   final BusRoute route;
-  final int visitedMinutesAgo;
+  final String variantLabel;
+  final String visitedLabel;
   final VoidCallback onTap;
 
   const _RecentRouteCard({
     required this.route,
-    required this.visitedMinutesAgo,
+    required this.variantLabel,
+    required this.visitedLabel,
     required this.onTap,
   });
 
@@ -122,12 +138,6 @@ class _RecentRouteCard extends StatelessWidget {
     }
   }
 
-  String get _lastVisited {
-    if (visitedMinutesAgo < 60) return '${visitedMinutesAgo}m ago';
-    if (visitedMinutesAgo < 1440) return '${(visitedMinutesAgo ~/ 60)}h ago';
-    return '${(visitedMinutesAgo ~/ 1440)}d ago';
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -135,167 +145,138 @@ class _RecentRouteCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Row(
+          child: Column(
             children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryVeryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.directions_bus_rounded,
-                  color: AppColors.primary,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              // Route details
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            route.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _statusColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _statusLabel,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryVeryLight,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            route.code,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          Icons.location_on,
-                          size: 11,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${route.stops.length} stops',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
+                    child: Icon(
+                      Icons.route_rounded,
+                      color: AppColors.primary,
+                      size: 21,
                     ),
-                    const SizedBox(height: 6),
-                    // Origin → Destination
-                    Row(
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.circle,
-                          size: 7,
-                          color: AppColors.statusOperating,
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          route.origin,
-                          style: const TextStyle(fontSize: 11),
+                          route.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 12,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.circle,
-                          size: 7,
-                          color: AppColors.statusUnavailable,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          route.destination,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                        const Spacer(),
+                        const SizedBox(height: 3),
                         Row(
                           children: [
-                            Icon(
-                              Icons.access_time_rounded,
-                              size: 11,
-                              color: Colors.grey[400],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                route.code,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 3),
-                            Text(
-                              _lastVisited,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[400],
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryVeryLight,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                variantLabel,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.primaryDark,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _statusColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _statusLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        visitedLabel,
+                        style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.grey[300],
-                size: 22,
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.location_on, size: 14, color: Colors.grey[500]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '${route.origin} -> ${route.destination}',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ),
+                  Text(
+                    '${route.defaultVariant.stops.length} stops',
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  ),
+                ],
               ),
             ],
           ),
@@ -306,28 +287,38 @@ class _RecentRouteCard extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.history_rounded, size: 72, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'No recent routes',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[400],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.history_toggle_off_rounded,
+              size: 74,
+              color: Colors.grey[300],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Routes you view will appear here.',
-            style: TextStyle(fontSize: 13, color: Colors.grey[400]),
-          ),
-        ],
+            const SizedBox(height: 14),
+            Text(
+              'No recent routes yet',
+              style: TextStyle(
+                fontSize: 19,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              'Open a route map and it will appear here automatically.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+            ),
+          ],
+        ),
       ),
     );
   }
