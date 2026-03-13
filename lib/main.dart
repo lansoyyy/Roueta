@@ -6,16 +6,23 @@ import 'package:roueta/firebase_options.dart';
 import 'core/constants/app_colors.dart';
 import 'providers/app_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Notification plugin must be initialised before Firebase.
   await NotificationService().init();
 
-  // Restore persisted driver session
+  // Restore persisted driver session.
   final authProvider = AuthProvider();
   await authProvider.init();
+
+  // Load persisted settings.
+  final settingsProvider = SettingsProvider();
+  await settingsProvider.load();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -27,15 +34,22 @@ void main() async {
       statusBarIconBrightness: Brightness.light,
     ),
   );
+
   await Firebase.initializeApp(
-    name: 'roueta-9f596',
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Build app provider and kick off local + remote data loading.
+  final appProvider = AppProvider();
+  await appProvider.initLocalData();
+  appProvider.startFirestoreListeners();
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AppProvider()..initLocalData()),
+        ChangeNotifierProvider.value(value: appProvider),
         ChangeNotifierProvider.value(value: authProvider),
+        ChangeNotifierProvider.value(value: settingsProvider),
       ],
       child: const RouetaApp(),
     ),

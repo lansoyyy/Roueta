@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../models/bus_route.dart';
 import '../providers/app_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/directions_service.dart';
+import '../services/firestore_service.dart';
 
 class ActiveBusScreen extends StatefulWidget {
   final BusRoute route;
@@ -25,9 +30,13 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
   int _currentStopIdx = 0;
-  int _minutesToNext = 2;
-  Timer? _timer;
+  int _minutesToNext = 0;
+  Timer? _gpsTimer;
+  bool _loadingPolyline = true;
   late String _variantId;
+  // Stored so we can clear the Firestore doc in dispose() without needing context.
+  String? _driverBadge;
+  String? _driverName;
 
   RouteVariant get _variant =>
       widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
@@ -38,43 +47,55 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   void initState() {
     super.initState();
     final provider = context.read<AppProvider>();
+    final auth = context.read<AuthProvider>();
+    _driverBadge = auth.driverBadge;
+    _driverName = auth.driverName;
     _variantId =
         widget.initialVariantId ??
         provider.activeDriverVariantId ??
         widget.route.defaultVariantId;
     widget.route.selectVariant(_variantId);
 
-    _buildMapElements();
-    _startSimulation();
+    _buildStopMarkers();
+    _fetchRoadPolyline();
+    _startGpsTracking();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _gpsTimer?.cancel();
     _mapController?.dispose();
+    if (_driverBadge != null) {
+      FirestoreService().clearBusLocation(_driverBadge!);
+    }
     super.dispose();
   }
+
+  // ── Variant change ────────────────────────────────────────────────────────
 
   void _changeVariant(String variantId) {
     setState(() {
       _variantId = variantId;
       _currentStopIdx = 0;
-      _minutesToNext = 2;
+      _minutesToNext = 0;
+      _loadingPolyline = true;
       widget.route.selectVariant(variantId);
     });
-
     context.read<AppProvider>().setActiveDriverRoute(
       widget.route,
       variantId: variantId,
+      driverBadge: _driverBadge,
+      driverName: _driverName,
     );
-    _buildMapElements();
+    _buildStopMarkers();
+    _fetchRoadPolyline();
   }
 
-  void _buildMapElements() {
+  // ── Stop markers (no polyline — handled separately) ───────────────────────
+
+  void _buildStopMarkers() {
     if (_stops.isEmpty) return;
-
     final markers = <Marker>{};
-
     for (int i = 0; i < _stops.length; i++) {
       final stop = _stops[i];
       markers.add(
@@ -90,42 +111,133 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
         ),
       );
     }
+    setState(() => _markers = markers);
+  }
 
-    final polyline = Polyline(
-      polylineId: PolylineId('${widget.route.id}_${_variant.id}'),
-      points: _variant.polylinePoints,
-      color: AppColors.primaryDark,
-      width: 5,
-      startCap: Cap.roundCap,
-      endCap: Cap.roundCap,
+  // ── Road-following polyline ───────────────────────────────────────────────
+
+  Future<void> _fetchRoadPolyline() async {
+    setState(() => _loadingPolyline = true);
+    final points = await DirectionsService().getPolylineForVariant(
+      widget.route.id,
+      _variantId,
+      _stops,
     );
-
+    if (!mounted) return;
     setState(() {
-      _markers = markers;
-      _polylines = {polyline};
+      _polylines = {
+        Polyline(
+          polylineId: PolylineId('${widget.route.id}_$_variantId'),
+          points: points,
+          color: AppColors.primaryDark,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      };
+      _loadingPolyline = false;
     });
   }
 
-  void _startSimulation() {
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (!mounted) return;
-      if (_stops.isEmpty) return;
+  // ── GPS tracking → Firestore ──────────────────────────────────────────────
 
-      setState(() {
-        if (_minutesToNext > 1) {
-          _minutesToNext--;
-        } else {
-          if (_currentStopIdx + 1 < _stops.length) {
-            _currentStopIdx++;
-            _minutesToNext = 3;
-            context.read<AppProvider>().updateActiveStopProgress(
-              _currentStopIdx,
-            );
-            _buildMapElements();
-          }
-        }
-      });
+  void _startGpsTracking() {
+    // Immediate first update
+    _updateGps();
+    // Then every 5 seconds
+    _gpsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) _updateGps();
     });
+  }
+
+  Future<void> _updateGps() async {
+    try {
+      final settings = context.read<SettingsProvider>();
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: settings.locationAccuracy,
+      );
+      final busPos = LatLng(pos.latitude, pos.longitude);
+      final stopIdx = _nearestStopIndex(busPos);
+      final mins = _minsToNextStop(busPos, stopIdx);
+
+      if (mounted) {
+        setState(() {
+          _currentStopIdx = stopIdx;
+          _minutesToNext = mins;
+        });
+        context.read<AppProvider>().updateActiveStopProgress(stopIdx);
+        _refreshStopMarkers(stopIdx);
+      }
+
+      // Push to Firestore
+      if (_driverBadge != null) {
+        FirestoreService().updateBusLocation(
+          driverBadge: _driverBadge!,
+          driverName: _driverName ?? 'Driver',
+          routeId: widget.route.id,
+          variantId: _variantId,
+          lat: pos.latitude,
+          lng: pos.longitude,
+          currentStopIndex: stopIdx,
+        );
+      }
+    } catch (_) {
+      // Location permission not granted or service unavailable — ignore.
+    }
+  }
+
+  // Rebuild just the markers when active stop changes (avoids full polyline rebuild).
+  void _refreshStopMarkers(int activeIdx) {
+    if (_stops.isEmpty) return;
+    final markers = <Marker>{};
+    for (int i = 0; i < _stops.length; i++) {
+      final stop = _stops[i];
+      markers.add(Marker(
+        markerId: MarkerId(stop.id),
+        position: stop.position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          i == activeIdx
+              ? BitmapDescriptor.hueRed
+              : BitmapDescriptor.hueCyan,
+        ),
+        infoWindow: InfoWindow(title: stop.name),
+      ));
+    }
+    if (mounted) setState(() => _markers = markers);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  int _nearestStopIndex(LatLng pos) {
+    if (_stops.isEmpty) return 0;
+    double minDist = double.infinity;
+    int nearest = 0;
+    for (int i = 0; i < _stops.length; i++) {
+      final d = Geolocator.distanceBetween(
+        pos.latitude,
+        pos.longitude,
+        _stops[i].position.latitude,
+        _stops[i].position.longitude,
+      );
+      if (d < minDist) {
+        minDist = d;
+        nearest = i;
+      }
+    }
+    return nearest;
+  }
+
+  int _minsToNextStop(LatLng busPos, int currentIdx) {
+    final nextIdx = (currentIdx + 1).clamp(0, _stops.length - 1);
+    if (nextIdx == currentIdx) return 0;
+    final distM = Geolocator.distanceBetween(
+      busPos.latitude,
+      busPos.longitude,
+      _stops[nextIdx].position.latitude,
+      _stops[nextIdx].position.longitude,
+    );
+    // 15 km/h ≈ 250 m/min
+    return (distM / 250).ceil().clamp(1, 99);
   }
 
   BusStop? get _nextStop {
@@ -137,20 +249,20 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   }
 
   LatLng get _mapCenter {
-    final pts = _variant.polylinePoints;
-    if (pts.isEmpty) return const LatLng(7.0644, 125.5214);
+    if (_stops.isEmpty) return const LatLng(7.0644, 125.5214);
     double lat = 0;
     double lng = 0;
-    for (final p in pts) {
-      lat += p.latitude;
-      lng += p.longitude;
+    for (final s in _stops) {
+      lat += s.position.latitude;
+      lng += s.position.longitude;
     }
-    return LatLng(lat / pts.length, lng / pts.length);
+    return LatLng(lat / _stops.length, lng / _stops.length);
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       body: Column(
@@ -313,6 +425,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     zoom: 13.5,
                   ),
                   onMapCreated: (ctrl) => _mapController = ctrl,
+                  mapType: settings.googleMapType,
+                  trafficEnabled: settings.showTraffic,
                   markers: _markers,
                   polylines: _polylines,
                   myLocationEnabled: provider.locationPermissionGranted,
@@ -320,6 +434,13 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                   zoomControlsEnabled: false,
                   mapToolbarEnabled: false,
                 ),
+                if (_loadingPolyline)
+                  const Positioned(
+                    top: 10,
+                    left: 0,
+                    right: 0,
+                    child: Center(child: _PolylineLoadingBadge()),
+                  ),
                 Positioned(
                   bottom: 16,
                   left: 12,
@@ -362,7 +483,9 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Approaching ${_nextStop?.name ?? "Next Stop"} in $_minutesToNext mins',
+                            _minutesToNext > 0
+                                ? 'Approaching ${_nextStop?.name ?? "Next Stop"} in $_minutesToNext min'
+                                : 'At stop: ${_stops.isNotEmpty ? _stops[_currentStopIdx].name : "—"}',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -408,6 +531,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                             OccupancyStatus.seatAvailable,
                         onTap: () => provider.updateOccupancy(
                           OccupancyStatus.seatAvailable,
+                          driverBadge: _driverBadge,
+                          routeId: widget.route.id,
                         ),
                       ),
                     ),
@@ -422,6 +547,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                             OccupancyStatus.limitedSeats,
                         onTap: () => provider.updateOccupancy(
                           OccupancyStatus.limitedSeats,
+                          driverBadge: _driverBadge,
+                          routeId: widget.route.id,
                         ),
                       ),
                     ),
@@ -436,6 +563,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                             OccupancyStatus.fullCapacity,
                         onTap: () => provider.updateOccupancy(
                           OccupancyStatus.fullCapacity,
+                          driverBadge: _driverBadge,
+                          routeId: widget.route.id,
                         ),
                       ),
                     ),
@@ -674,6 +803,49 @@ class _SearchBar extends StatelessWidget {
               color: Colors.white70,
               fontSize: 14,
               letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PolylineLoadingBadge extends StatelessWidget {
+  const _PolylineLoadingBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Loading road route…',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

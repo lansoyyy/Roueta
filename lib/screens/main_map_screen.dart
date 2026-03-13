@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/app_drawer.dart';
 import 'auth/driver_login_screen.dart';
 import 'passenger/passenger_routes_screen.dart';
@@ -19,7 +20,8 @@ class MainMapScreen extends StatefulWidget {
 
 class _MainMapScreenState extends State<MainMapScreen> {
   GoogleMapController? _mapController;
-  int _selectedIndex = 1; // 0 = bus, 1 = map/location, 2 = profile
+  /// 0 = routes/bus tab, 1 = live map, 2 = profile
+  int _selectedIndex = 1;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   final TextEditingController _searchController = TextEditingController();
 
@@ -27,7 +29,11 @@ class _MainMapScreenState extends State<MainMapScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AppProvider>().startLiveTracking();
+      final settings = context.read<SettingsProvider>();
+      context.read<AppProvider>().startLiveTracking(
+        accuracy: settings.locationAccuracy,
+      );
+      if (settings.autoCenter) _centerOnUser();
     });
   }
 
@@ -38,13 +44,22 @@ class _MainMapScreenState extends State<MainMapScreen> {
     super.dispose();
   }
 
-  Widget _buildBody(AppProvider provider) {
+  void _centerOnUser() {
+    final provider = context.read<AppProvider>();
+    if (provider.locationPermissionGranted && _mapController != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLng(provider.currentLatLng),
+      );
+    }
+  }
+
+  // ── Build body based on selected tab ─────────────────────────────────────
+
+  Widget _buildBody(AppProvider provider, SettingsProvider settings) {
     if (_selectedIndex == 0) {
-      // Driver mode requires authentication
       if (provider.userMode == UserMode.driver) {
         final auth = context.read<AuthProvider>();
         if (!auth.isDriverLoggedIn) {
-          // Silently fall back to passenger and prompt login
           WidgetsBinding.instance.addPostFrameCallback((_) {
             provider.setUserMode(UserMode.passenger);
             Navigator.push(
@@ -59,29 +74,24 @@ class _MainMapScreenState extends State<MainMapScreen> {
       return const PassengerRoutesScreen();
     }
 
-    if (_selectedIndex == 2) {
-      return const ProfileScreen();
-    }
+    if (_selectedIndex == 2) return const ProfileScreen();
 
-    // Map view (index 1)
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: provider.currentLatLng,
-        zoom: 13.5,
-      ),
-      onMapCreated: (ctrl) => _mapController = ctrl,
-      myLocationEnabled: provider.locationPermissionGranted,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      mapToolbarEnabled: false,
-      buildingsEnabled: true,
-      compassEnabled: false,
+    // ── Live map view (index 1) ──────────────────────────────────────────
+    return _LiveMapView(
+      mapController: _mapController,
+      onMapCreated: (ctrl) {
+        _mapController = ctrl;
+        if (settings.autoCenter) _centerOnUser();
+      },
+      provider: provider,
+      settings: settings,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       key: _scaffoldKey,
@@ -89,15 +99,13 @@ class _MainMapScreenState extends State<MainMapScreen> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Top App Bar
           _TopBar(
             scaffoldKey: _scaffoldKey,
             searchController: _searchController,
             onSearch: (q) => provider.setSearchQuery(q),
+            unreadCount: provider.unreadNotificationCount,
           ),
-
-          // Body
-          Expanded(child: _buildBody(provider)),
+          Expanded(child: _buildBody(provider, settings)),
         ],
       ),
       bottomNavigationBar: _BottomNav(
@@ -109,20 +117,150 @@ class _MainMapScreenState extends State<MainMapScreen> {
   }
 }
 
-// ──────────────────────────── Top Bar ────────────────────────────
+// ── Live map with active bus markers ─────────────────────────────────────────
+
+class _LiveMapView extends StatelessWidget {
+  final GoogleMapController? mapController;
+  final MapCreatedCallback onMapCreated;
+  final AppProvider provider;
+  final SettingsProvider settings;
+
+  const _LiveMapView({
+    required this.mapController,
+    required this.onMapCreated,
+    required this.provider,
+    required this.settings,
+  });
+
+  Set<Marker> _buildBusMarkers() {
+    return provider.activeBusLocations.values.map((bus) {
+      return Marker(
+        markerId: MarkerId('bus_${bus.driverBadge}'),
+        position: bus.position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: InfoWindow(
+          title: '${bus.driverBadge} — ${bus.routeId.toUpperCase()}',
+          snippet: bus.driverName,
+        ),
+      );
+    }).toSet();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final buses = _buildBusMarkers();
+
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: provider.currentLatLng,
+            zoom: 13.5,
+          ),
+          onMapCreated: onMapCreated,
+          mapType: settings.googleMapType,
+          trafficEnabled: settings.showTraffic,
+          myLocationEnabled: provider.locationPermissionGranted,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          mapToolbarEnabled: false,
+          buildingsEnabled: true,
+          compassEnabled: false,
+          markers: buses,
+        ),
+        // Active bus count badge
+        if (buses.isNotEmpty)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.directions_bus,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${buses.length} active',
+                    style: TextStyle(
+                      color: AppColors.primaryDark,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        // My location button
+        if (provider.locationPermissionGranted)
+          Positioned(
+            bottom: 20,
+            right: 12,
+            child: GestureDetector(
+              onTap: () {
+                mapController?.animateCamera(
+                  CameraUpdate.newLatLng(provider.currentLatLng),
+                );
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.my_location,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Top bar ───────────────────────────────────────────────────────────────────
+
 class _TopBar extends StatelessWidget {
   final GlobalKey<ScaffoldState> scaffoldKey;
   final TextEditingController searchController;
   final ValueChanged<String> onSearch;
+  final int unreadCount;
 
   const _TopBar({
     required this.scaffoldKey,
     required this.searchController,
     required this.onSearch,
+    this.unreadCount = 0,
   });
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return Container(
       color: AppColors.primary,
       padding: EdgeInsets.only(
@@ -133,7 +271,6 @@ class _TopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Hamburger
           GestureDetector(
             onTap: () => scaffoldKey.currentState?.openDrawer(),
             child: const Padding(
@@ -142,8 +279,6 @@ class _TopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-
-          // Search bar
           Expanded(
             child: Container(
               height: 38,
@@ -160,10 +295,11 @@ class _TopBar extends StatelessWidget {
                     child: TextField(
                       controller: searchController,
                       onChanged: onSearch,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      decoration: const InputDecoration(
-                        hintText: 'SEARCH',
-                        hintStyle: TextStyle(
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: settings.tr('search_hint'),
+                        hintStyle: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                           letterSpacing: 1,
@@ -178,13 +314,32 @@ class _TopBar extends StatelessWidget {
               ),
             ),
           ),
+          if (unreadCount > 0) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '$unreadCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-// ──────────────────────────── Bottom Nav ────────────────────────────
+// ── Bottom navigation ─────────────────────────────────────────────────────────
+
 class _BottomNav extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTap;
@@ -198,6 +353,7 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -214,7 +370,6 @@ class _BottomNav extends StatelessWidget {
           height: 80,
           child: Stack(
             children: [
-              // Nav items
               Row(
                 children: [
                   _NavItem(
@@ -230,7 +385,6 @@ class _BottomNav extends StatelessWidget {
                   ),
                 ],
               ),
-              // Center ROUTES FAB
               Center(
                 child: GestureDetector(
                   onTap: () => onTap(1),
@@ -258,9 +412,9 @@ class _BottomNav extends StatelessWidget {
                           size: 26,
                         ),
                       ),
-                      const Text(
-                        'ROUTES',
-                        style: TextStyle(
+                      Text(
+                        settings.tr('routes'),
+                        style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -301,7 +455,7 @@ class _NavItem extends StatelessWidget {
           child: Icon(
             icon,
             color: isSelected ? AppColors.primary : Colors.grey[400],
-            size: 28,
+            size: 26,
           ),
         ),
       ),

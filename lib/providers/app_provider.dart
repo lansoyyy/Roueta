@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/app_notification.dart';
+import '../models/bus_location_data.dart';
 import '../models/bus_route.dart';
 import '../data/routes_data.dart';
+import '../services/firestore_service.dart';
+import '../services/notification_service.dart';
 
 enum UserMode { passenger, driver }
 
@@ -34,16 +40,15 @@ class RecentRouteEntry {
     'viewedAt': viewedAt.toIso8601String(),
   };
 
-  static RecentRouteEntry fromJson(Map<String, dynamic> json) {
-    return RecentRouteEntry(
-      routeId: json['routeId'] as String,
-      routeCode: json['routeCode'] as String,
-      routeName: json['routeName'] as String,
-      variantId: json['variantId'] as String,
-      variantLabel: json['variantLabel'] as String,
-      viewedAt: DateTime.parse(json['viewedAt'] as String),
-    );
-  }
+  static RecentRouteEntry fromJson(Map<String, dynamic> json) =>
+      RecentRouteEntry(
+        routeId: json['routeId'] as String,
+        routeCode: json['routeCode'] as String,
+        routeName: json['routeName'] as String,
+        variantId: json['variantId'] as String,
+        variantLabel: json['variantLabel'] as String,
+        viewedAt: DateTime.parse(json['viewedAt'] as String),
+      );
 }
 
 class DriverTripRecord {
@@ -109,6 +114,7 @@ class DriverTripRecord {
 class AppProvider extends ChangeNotifier {
   static const String _recentRoutesKey = 'recent_routes';
   static const String _driverTripsKey = 'driver_trip_history';
+  static const String _notificationsKey = 'in_app_notifications';
 
   final List<BusRoute> _routes = RoutesData.routes;
   BusRoute? _selectedRoute;
@@ -123,12 +129,27 @@ class AppProvider extends ChangeNotifier {
   OccupancyStatus? _driverOccupancy;
   final List<RecentRouteEntry> _recentRoutes = [];
   final List<DriverTripRecord> _driverTripHistory = [];
-
   DateTime? _activeTripStartedAt;
   int _activeTripMaxStopIndex = 0;
   OccupancyStatus? _activeTripPeakOccupancy;
 
-  // Getters
+  // ── Live GPS ──────────────────────────────────────────────────────────────
+  StreamSubscription<Position>? _locationSub;
+
+  // ── Firestore listeners ───────────────────────────────────────────────────
+  StreamSubscription<QuerySnapshot>? _busLocationsSub;
+  StreamSubscription<QuerySnapshot>? _routeStatusSub;
+  final Map<String, BusLocationData> _activeBusLocations = {};
+
+  // ── Change detection for notifications ───────────────────────────────────
+  final Map<String, RouteStatus> _prevRouteStatus = {};
+  final Map<String, OccupancyStatus?> _prevOccupancy = {};
+
+  // ── In-app notifications ──────────────────────────────────────────────────
+  final List<AppNotification> _notifications = [];
+
+  // ── Getters ───────────────────────────────────────────────────────────────
+
   List<BusRoute> get routes => _routes;
   BusRoute? get selectedRoute => _selectedRoute;
   String? get selectedVariantId => _selectedVariantId;
@@ -156,10 +177,15 @@ class AppProvider extends ChangeNotifier {
   List<RecentRouteEntry> get recentRoutes => List.unmodifiable(_recentRoutes);
   List<DriverTripRecord> get driverTripHistory =>
       List.unmodifiable(_driverTripHistory);
+  Map<String, BusLocationData> get activeBusLocations =>
+      Map.unmodifiable(_activeBusLocations);
+  List<AppNotification> get notifications => List.unmodifiable(_notifications);
+  int get unreadNotificationCount =>
+      _notifications.where((n) => !n.isRead).length;
 
   LatLng get currentLatLng => _currentPosition != null
       ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
-      : const LatLng(7.0644, 125.5214); // Default: Davao City center
+      : const LatLng(7.0644, 125.5214);
 
   List<BusRoute> get filteredRoutes {
     if (_searchQuery.isEmpty) return _routes;
@@ -176,38 +202,220 @@ class AppProvider extends ChangeNotifier {
         .toList();
   }
 
-  void setUserMode(UserMode mode) {
-    _userMode = mode;
-    notifyListeners();
-  }
+  List<BusLocationData> getBusLocationsForRoute(String routeId) =>
+      _activeBusLocations.values
+          .where((b) => b.routeId == routeId)
+          .toList();
+
+  // ── Initialisation ────────────────────────────────────────────────────────
 
   Future<void> initLocalData() async {
     final prefs = await SharedPreferences.getInstance();
 
     final recentRaw = prefs.getString(_recentRoutesKey);
     if (recentRaw != null && recentRaw.isNotEmpty) {
-      final decoded = jsonDecode(recentRaw) as List<dynamic>;
-      _recentRoutes
-        ..clear()
-        ..addAll(
-          decoded
-              .map((e) => RecentRouteEntry.fromJson(e as Map<String, dynamic>))
-              .toList(growable: false),
-        );
+      try {
+        final decoded = jsonDecode(recentRaw) as List<dynamic>;
+        _recentRoutes
+          ..clear()
+          ..addAll(
+            decoded.map(
+              (e) => RecentRouteEntry.fromJson(e as Map<String, dynamic>),
+            ),
+          );
+      } catch (_) {}
     }
 
     final tripRaw = prefs.getString(_driverTripsKey);
     if (tripRaw != null && tripRaw.isNotEmpty) {
-      final decoded = jsonDecode(tripRaw) as List<dynamic>;
-      _driverTripHistory
-        ..clear()
-        ..addAll(
-          decoded
-              .map((e) => DriverTripRecord.fromJson(e as Map<String, dynamic>))
-              .toList(growable: false),
-        );
+      try {
+        final decoded = jsonDecode(tripRaw) as List<dynamic>;
+        _driverTripHistory
+          ..clear()
+          ..addAll(
+            decoded.map(
+              (e) => DriverTripRecord.fromJson(e as Map<String, dynamic>),
+            ),
+          );
+      } catch (_) {}
     }
 
+    final notifRaw = prefs.getString(_notificationsKey);
+    if (notifRaw != null && notifRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(notifRaw) as List<dynamic>;
+        _notifications
+          ..clear()
+          ..addAll(
+            decoded.map(
+              (e) => AppNotification.fromJson(e as Map<String, dynamic>),
+            ),
+          );
+      } catch (_) {}
+    }
+
+    notifyListeners();
+  }
+
+  /// Subscribe to Firestore for live bus positions and route status updates.
+  void startFirestoreListeners() {
+    _busLocationsSub?.cancel();
+    _busLocationsSub =
+        FirestoreService().streamActiveBusLocations().listen((snap) {
+      _activeBusLocations.clear();
+      for (final doc in snap.docs) {
+        final bus =
+            BusLocationData.fromFirestore(doc.data() as Map<String, dynamic>);
+        if (bus.driverBadge.isNotEmpty) {
+          _activeBusLocations[bus.driverBadge] = bus;
+        }
+      }
+      notifyListeners();
+    }, onError: (_) {});
+
+    _routeStatusSub?.cancel();
+    _routeStatusSub =
+        FirestoreService().streamAllRouteStatuses().listen((snap) {
+      bool changed = false;
+      for (final doc in snap.docs) {
+        final routeId = doc.id;
+        final data = doc.data() as Map<String, dynamic>;
+        final idx = _routes.indexWhere((r) => r.id == routeId);
+        if (idx == -1) continue;
+
+        final statusStr = data['status'] as String?;
+        RouteStatus? newStatus = statusStr == null
+            ? null
+            : RouteStatus.values.firstWhere(
+                (s) => s.name == statusStr,
+                orElse: () => RouteStatus.onStandby,
+              );
+
+        final occStr = data['occupancyStatus'] as String?;
+        OccupancyStatus? newOcc = occStr == null
+            ? null
+            : OccupancyStatus.values.firstWhere(
+                (s) => s.name == occStr,
+                orElse: () => OccupancyStatus.limitedSeats,
+              );
+
+        final occUpdated = data['occupancyLastUpdated'] as Timestamp?;
+
+        // Detect and broadcast changes
+        if (newStatus != null &&
+            _prevRouteStatus.containsKey(routeId) &&
+            _prevRouteStatus[routeId] != newStatus) {
+          _onRouteStatusChanged(_routes[idx], newStatus);
+        }
+        if (newOcc != null &&
+            _prevOccupancy.containsKey(routeId) &&
+            _prevOccupancy[routeId] != newOcc) {
+          _onOccupancyChanged(_routes[idx], newOcc);
+        }
+
+        if (newStatus != null) {
+          _routes[idx].status = newStatus;
+          _prevRouteStatus[routeId] = newStatus;
+        }
+        _routes[idx].occupancyStatus = newOcc;
+        _routes[idx].occupancyLastUpdated = occUpdated?.toDate();
+        _prevOccupancy[routeId] = newOcc;
+        changed = true;
+      }
+      if (changed) notifyListeners();
+    }, onError: (_) {});
+  }
+
+  void _onRouteStatusChanged(BusRoute route, RouteStatus newStatus) {
+    final label = newStatus == RouteStatus.operating
+        ? 'now operating. Buses are on the road.'
+        : newStatus == RouteStatus.onStandby
+        ? 'placed on standby. Service will resume shortly.'
+        : 'currently unavailable.';
+    _addNotification(AppNotification(
+      id: '${route.id}_status_${DateTime.now().millisecondsSinceEpoch}',
+      type: AppNotificationType.routeStatus,
+      title: 'Route Status Changed',
+      body: '${route.name} is $label',
+      time: DateTime.now(),
+    ));
+    NotificationService().showRouteStatusNotification(
+      routeName: route.name,
+      status: label,
+    );
+  }
+
+  void _onOccupancyChanged(BusRoute route, OccupancyStatus newOcc) {
+    final label = newOcc == OccupancyStatus.seatAvailable
+        ? 'Seats Available (~33%)'
+        : newOcc == OccupancyStatus.limitedSeats
+        ? 'Limited Seats (~67%)'
+        : 'Full Capacity (~95%). Expect standing passengers.';
+    _addNotification(AppNotification(
+      id: '${route.id}_occ_${DateTime.now().millisecondsSinceEpoch}',
+      type: AppNotificationType.occupancyUpdate,
+      title: 'Occupancy Update – ${route.code}',
+      body: '${route.name} is now reporting $label',
+      time: DateTime.now(),
+    ));
+    NotificationService().showOccupancyNotification(
+      routeName: route.name,
+      occupancyLabel: label,
+    );
+  }
+
+  // ── Notification CRUD ─────────────────────────────────────────────────────
+
+  void _addNotification(AppNotification notif) {
+    _notifications.insert(0, notif);
+    if (_notifications.length > 50) {
+      _notifications.removeRange(50, _notifications.length);
+    }
+    _saveNotifications();
+    notifyListeners();
+  }
+
+  void addBusApproachingNotification({
+    required String routeCode,
+    required String stopName,
+    required int minutesAway,
+  }) {
+    _addNotification(AppNotification(
+      id: 'approach_${stopName}_${DateTime.now().millisecondsSinceEpoch}',
+      type: AppNotificationType.busApproaching,
+      title: 'Your bus is $minutesAway mins away!',
+      body: '$routeCode bus is $minutesAway mins away from $stopName bus stop.',
+      time: DateTime.now(),
+    ));
+  }
+
+  void markNotificationRead(String id) {
+    final idx = _notifications.indexWhere((n) => n.id == id);
+    if (idx != -1) {
+      _notifications[idx].isRead = true;
+      _saveNotifications();
+      notifyListeners();
+    }
+  }
+
+  void markAllNotificationsRead() {
+    for (final n in _notifications) {
+      n.isRead = true;
+    }
+    _saveNotifications();
+    notifyListeners();
+  }
+
+  void deleteNotification(String id) {
+    _notifications.removeWhere((n) => n.id == id);
+    _saveNotifications();
+    notifyListeners();
+  }
+
+  // ── User mode ─────────────────────────────────────────────────────────────
+
+  void setUserMode(UserMode mode) {
+    _userMode = mode;
     notifyListeners();
   }
 
@@ -238,7 +446,12 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setActiveDriverRoute(BusRoute? route, {String? variantId}) {
+  void setActiveDriverRoute(
+    BusRoute? route, {
+    String? variantId,
+    String? driverBadge,
+    String? driverName,
+  }) {
     _activeDriverRoute = route;
     _activeDriverVariantId = variantId;
     if (route != null) {
@@ -247,6 +460,11 @@ class AppProvider extends ChangeNotifier {
       _activeTripStartedAt = DateTime.now();
       _activeTripMaxStopIndex = 0;
       _activeTripPeakOccupancy = null;
+      FirestoreService().updateRouteStatusAndOccupancy(
+        routeId: route.id,
+        status: RouteStatus.operating.name,
+        updatedBy: driverBadge ?? 'driver',
+      );
     }
     notifyListeners();
   }
@@ -257,12 +475,13 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  void stopDriverRoute() {
+  void stopDriverRoute({String? driverBadge}) {
     if (_activeDriverRoute != null && _activeTripStartedAt != null) {
       final variant = activeDriverVariant;
       final totalStops =
           variant?.stops.length ?? _activeDriverRoute!.stops.length;
-      final completedStops = (_activeTripMaxStopIndex + 1).clamp(1, totalStops);
+      final completedStops =
+          (_activeTripMaxStopIndex + 1).clamp(1, totalStops);
 
       _driverTripHistory.insert(
         0,
@@ -289,7 +508,16 @@ class AppProvider extends ChangeNotifier {
     if (_activeDriverRoute != null) {
       _activeDriverRoute!.status = RouteStatus.onStandby;
       _activeDriverRoute!.occupancyStatus = null;
+      FirestoreService().updateRouteStatusAndOccupancy(
+        routeId: _activeDriverRoute!.id,
+        status: RouteStatus.onStandby.name,
+        updatedBy: driverBadge ?? 'driver',
+      );
+      if (driverBadge != null) {
+        FirestoreService().clearBusLocation(driverBadge);
+      }
     }
+
     _activeDriverRoute = null;
     _activeDriverVariantId = null;
     _driverOccupancy = null;
@@ -299,7 +527,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateOccupancy(OccupancyStatus status) {
+  void updateOccupancy(
+    OccupancyStatus status, {
+    String? driverBadge,
+    String? routeId,
+  }) {
     _driverOccupancy = status;
 
     if (_activeTripPeakOccupancy == null ||
@@ -310,12 +542,17 @@ class AppProvider extends ChangeNotifier {
     if (_activeDriverRoute != null) {
       _activeDriverRoute!.occupancyStatus = status;
       _activeDriverRoute!.occupancyLastUpdated = DateTime.now();
+      FirestoreService().updateRouteStatusAndOccupancy(
+        routeId: routeId ?? _activeDriverRoute!.id,
+        occupancyStatus: status.name,
+        updatedBy: driverBadge ?? 'driver',
+      );
     }
     notifyListeners();
   }
 
-  int _occupancyScore(OccupancyStatus status) {
-    switch (status) {
+  int _occupancyScore(OccupancyStatus s) {
+    switch (s) {
       case OccupancyStatus.seatAvailable:
         return 1;
       case OccupancyStatus.limitedSeats:
@@ -327,7 +564,6 @@ class AppProvider extends ChangeNotifier {
 
   void addRecentRoute(BusRoute route, String variantId) {
     final variant = route.variantById(variantId) ?? route.defaultVariant;
-
     _recentRoutes.removeWhere(
       (e) => e.routeId == route.id && e.variantId == variant.id,
     );
@@ -342,28 +578,10 @@ class AppProvider extends ChangeNotifier {
         viewedAt: DateTime.now(),
       ),
     );
-
     if (_recentRoutes.length > 25) {
       _recentRoutes.removeRange(25, _recentRoutes.length);
     }
-
     _saveRecentRoutes();
-  }
-
-  Future<void> _saveRecentRoutes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final payload = jsonEncode(
-      _recentRoutes.map((e) => e.toJson()).toList(growable: false),
-    );
-    await prefs.setString(_recentRoutesKey, payload);
-  }
-
-  Future<void> _saveDriverTrips() async {
-    final prefs = await SharedPreferences.getInstance();
-    final payload = jsonEncode(
-      _driverTripHistory.map((e) => e.toJson()).toList(growable: false),
-    );
-    await prefs.setString(_driverTripsKey, payload);
   }
 
   void updateRouteStatus(String routeId, RouteStatus status) {
@@ -374,7 +592,9 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> requestLocationPermission() async {
+  // ── Location ──────────────────────────────────────────────────────────────
+
+  Future<bool> requestLocationPermission({LocationAccuracy? accuracy}) async {
     _isLoadingLocation = true;
     notifyListeners();
 
@@ -402,20 +622,18 @@ class AppProvider extends ChangeNotifier {
     }
 
     _locationPermissionGranted = true;
-    await _getCurrentLocation();
+    await _getCurrentLocation(accuracy: accuracy);
     return true;
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<void> _getCurrentLocation({LocationAccuracy? accuracy}) async {
     try {
       _currentPosition = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
+        locationSettings: LocationSettings(
+          accuracy: accuracy ?? LocationAccuracy.high,
         ),
       );
-    } catch (_) {
-      // Keep default Davao City center
-    }
+    } catch (_) {}
     _isLoadingLocation = false;
     notifyListeners();
   }
@@ -425,16 +643,66 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Start tracking live location (call when on active route screen)
-  void startLiveTracking() {
-    Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
+  void startLiveTracking({LocationAccuracy? accuracy}) {
+    _locationSub?.cancel();
+    _locationSub = Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: accuracy ?? LocationAccuracy.high,
         distanceFilter: 10,
       ),
-    ).listen((pos) {
-      _currentPosition = pos;
-      notifyListeners();
-    });
+    ).listen(
+      (pos) {
+        _currentPosition = pos;
+        notifyListeners();
+      },
+      onError: (_) {},
+    );
+  }
+
+  void stopLiveTracking() {
+    _locationSub?.cancel();
+    _locationSub = null;
+  }
+
+  // ── Persistence ───────────────────────────────────────────────────────────
+
+  Future<void> _saveRecentRoutes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _recentRoutesKey,
+        jsonEncode(_recentRoutes.map((e) => e.toJson()).toList()),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _saveDriverTrips() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _driverTripsKey,
+        jsonEncode(_driverTripHistory.map((e) => e.toJson()).toList()),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _saveNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _notificationsKey,
+        jsonEncode(
+          _notifications.take(50).map((e) => e.toJson()).toList(),
+        ),
+      );
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _locationSub?.cancel();
+    _busLocationsSub?.cancel();
+    _routeStatusSub?.cancel();
+    super.dispose();
   }
 }

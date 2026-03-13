@@ -1,79 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../providers/settings_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  static const String _kBusApproachNotifs = 'settings_bus_approach_notifs';
-  static const String _kOccupancyNotifs = 'settings_occupancy_notifs';
-  static const String _kRouteStatusNotifs = 'settings_route_status_notifs';
-  static const String _kVibrate = 'settings_vibrate';
-  static const String _kMapType = 'settings_map_type';
-  static const String _kShowTraffic = 'settings_show_traffic';
-  static const String _kHighAccuracy = 'settings_high_accuracy';
-  static const String _kAutoCenter = 'settings_auto_center';
-  static const String _kDefaultMode = 'settings_default_mode';
-  static const String _kLanguage = 'settings_language';
-
-  bool _busApproachNotifs = true;
-  bool _occupancyNotifs = true;
-  bool _routeStatusNotifs = false;
-  bool _vibrate = true;
-  String _mapType = 'Normal';
-  bool _showTraffic = false;
-  bool _highAccuracy = true;
-  bool _autoCenter = true;
-  String _defaultMode = 'Passenger';
-  String _language = 'English';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-
-    setState(() {
-      _busApproachNotifs =
-          prefs.getBool(_kBusApproachNotifs) ?? _busApproachNotifs;
-      _occupancyNotifs = prefs.getBool(_kOccupancyNotifs) ?? _occupancyNotifs;
-      _routeStatusNotifs =
-          prefs.getBool(_kRouteStatusNotifs) ?? _routeStatusNotifs;
-      _vibrate = prefs.getBool(_kVibrate) ?? _vibrate;
-      _mapType = prefs.getString(_kMapType) ?? _mapType;
-      _showTraffic = prefs.getBool(_kShowTraffic) ?? _showTraffic;
-      _highAccuracy = prefs.getBool(_kHighAccuracy) ?? _highAccuracy;
-      _autoCenter = prefs.getBool(_kAutoCenter) ?? _autoCenter;
-      _defaultMode = prefs.getString(_kDefaultMode) ?? _defaultMode;
-      _language = prefs.getString(_kLanguage) ?? _language;
-    });
-  }
-
-  Future<void> _saveSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_kBusApproachNotifs, _busApproachNotifs);
-    await prefs.setBool(_kOccupancyNotifs, _occupancyNotifs);
-    await prefs.setBool(_kRouteStatusNotifs, _routeStatusNotifs);
-    await prefs.setBool(_kVibrate, _vibrate);
-    await prefs.setString(_kMapType, _mapType);
-    await prefs.setBool(_kShowTraffic, _showTraffic);
-    await prefs.setBool(_kHighAccuracy, _highAccuracy);
-    await prefs.setBool(_kAutoCenter, _autoCenter);
-    await prefs.setString(_kDefaultMode, _defaultMode);
-    await prefs.setString(_kLanguage, _language);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final settings = context.watch<SettingsProvider>();
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -97,32 +33,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
             iconColor: AppColors.primary,
             title: 'Bus Approaching Alerts',
             subtitle: 'Notify when your bus is 2 minutes away',
-            value: _busApproachNotifs,
-            onChanged: (v) => setState(() => _busApproachNotifs = v),
+            value: settings.busApproachNotifs,
+            onChanged: (v) {
+              settings.busApproachNotifs = v;
+              settings.save();
+            },
           ),
           _ToggleTile(
             icon: Icons.people_rounded,
             iconColor: AppColors.accent,
             title: 'Occupancy Updates',
             subtitle: 'Notify when bus occupancy changes significantly',
-            value: _occupancyNotifs,
-            onChanged: (v) => setState(() => _occupancyNotifs = v),
+            value: settings.occupancyNotifs,
+            onChanged: (v) {
+              settings.occupancyNotifs = v;
+              settings.save();
+            },
           ),
           _ToggleTile(
             icon: Icons.route_rounded,
             iconColor: AppColors.statusOperating,
             title: 'Route Status Changes',
             subtitle: 'Notify when routes go on standby or resume',
-            value: _routeStatusNotifs,
-            onChanged: (v) => setState(() => _routeStatusNotifs = v),
+            value: settings.routeStatusNotifs,
+            onChanged: (v) {
+              settings.routeStatusNotifs = v;
+              settings.save();
+            },
           ),
           _ToggleTile(
             icon: Icons.vibration_rounded,
             iconColor: Colors.blueGrey,
             title: 'Vibration',
             subtitle: 'Vibrate when a notification arrives',
-            value: _vibrate,
-            onChanged: (v) => setState(() => _vibrate = v),
+            value: settings.vibrate,
+            onChanged: (v) {
+              settings.vibrate = v;
+              settings.save();
+            },
           ),
 
           const SizedBox(height: 8),
@@ -133,25 +81,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.layers_outlined,
             iconColor: Colors.indigo,
             title: 'Map Type',
-            value: _mapType,
+            value: settings.mapType,
             options: const ['Normal', 'Satellite', 'Terrain', 'Hybrid'],
-            onChanged: (v) => setState(() => _mapType = v),
+            onChanged: (v) {
+              settings.mapType = v;
+              settings.save();
+            },
           ),
           _ToggleTile(
             icon: Icons.traffic_rounded,
             iconColor: Colors.orange,
             title: 'Show Traffic Layer',
             subtitle: 'Display real-time traffic conditions on the map',
-            value: _showTraffic,
-            onChanged: (v) => setState(() => _showTraffic = v),
+            value: settings.showTraffic,
+            onChanged: (v) {
+              settings.showTraffic = v;
+              settings.save();
+            },
           ),
           _ToggleTile(
             icon: Icons.my_location_rounded,
             iconColor: Colors.blue,
             title: 'Auto-Center on Location',
             subtitle: 'Map re-centers when you open the app',
-            value: _autoCenter,
-            onChanged: (v) => setState(() => _autoCenter = v),
+            value: settings.autoCenter,
+            onChanged: (v) {
+              settings.autoCenter = v;
+              settings.save();
+            },
           ),
 
           const SizedBox(height: 8),
@@ -163,8 +120,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             iconColor: Colors.red,
             title: 'High Accuracy Mode',
             subtitle: 'Uses more battery but gives precise location',
-            value: _highAccuracy,
-            onChanged: (v) => setState(() => _highAccuracy = v),
+            value: settings.highAccuracy,
+            onChanged: (v) {
+              settings.highAccuracy = v;
+              settings.save();
+            },
           ),
 
           const SizedBox(height: 8),
@@ -175,17 +135,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.person_outlined,
             iconColor: AppColors.primaryDark,
             title: 'Default Mode',
-            value: _defaultMode,
+            value: settings.defaultMode,
             options: const ['Passenger', 'Driver'],
-            onChanged: (v) => setState(() => _defaultMode = v),
+            onChanged: (v) {
+              settings.defaultMode = v;
+              settings.save();
+            },
           ),
           _SelectTile(
             icon: Icons.language_rounded,
             iconColor: Colors.teal,
             title: 'Language',
-            value: _language,
+            value: settings.language,
             options: const ['English', 'Filipino', 'Cebuano'],
-            onChanged: (v) => setState(() => _language = v),
+            onChanged: (v) {
+              settings.language = v;
+              settings.save();
+            },
           ),
 
           const SizedBox(height: 8),
@@ -227,13 +193,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 32),
 
-          // Save button
+          // Confirmation snackbar trigger
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
             child: ElevatedButton(
-              onPressed: () async {
-                await _saveSettings();
-                if (!context.mounted) return;
+              onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: const Text('Settings saved'),

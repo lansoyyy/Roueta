@@ -1,90 +1,18 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../models/app_notification.dart';
+import '../providers/app_provider.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  // Demo notification data
-  final List<_NotifItem> _notifications = [
-    _NotifItem(
-      type: _NotifType.busApproaching,
-      title: 'Your bus is 2 mins away!',
-      body: 'R103 bus is 2 mins away from Ecoland Terminal bus stop.',
-      time: DateTime.now().subtract(const Duration(minutes: 4)),
-      isRead: false,
-    ),
-    _NotifItem(
-      type: _NotifType.occupancyUpdate,
-      title: 'Occupancy Update – R103',
-      body:
-          'Toril – GE Torres route is now reporting Limited Seats (~67% full).',
-      time: DateTime.now().subtract(const Duration(minutes: 22)),
-      isRead: false,
-    ),
-    _NotifItem(
-      type: _NotifType.busApproaching,
-      title: 'Your bus is 2 mins away!',
-      body: 'R103 bus is 2 mins away from Matina Town Square bus stop.',
-      time: DateTime.now().subtract(const Duration(hours: 1, minutes: 15)),
-      isRead: true,
-    ),
-    _NotifItem(
-      type: _NotifType.routeStatus,
-      title: 'Route Status Changed',
-      body: 'Mintal – GE Torres route is now operating. Buses are on the road.',
-      time: DateTime.now().subtract(const Duration(hours: 3, minutes: 40)),
-      isRead: true,
-    ),
-    _NotifItem(
-      type: _NotifType.occupancyUpdate,
-      title: 'Standing Only Alert – R104',
-      body:
-          'Talomo – Roxas route is at full capacity (~95%). Expect standing passengers.',
-      time: DateTime.now().subtract(const Duration(hours: 5)),
-      isRead: true,
-    ),
-    _NotifItem(
-      type: _NotifType.routeStatus,
-      title: 'Route On Standby',
-      body:
-          'Bangkal – Roxas route has been placed on standby. Service will resume shortly.',
-      time: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-      isRead: true,
-    ),
-    _NotifItem(
-      type: _NotifType.busApproaching,
-      title: 'Your bus is 2 mins away!',
-      body: 'R104 bus is 2 mins away from Talomo Market bus stop.',
-      time: DateTime.now().subtract(const Duration(days: 1, hours: 8)),
-      isRead: true,
-    ),
-  ];
-
-  int get _unreadCount => _notifications.where((n) => !n.isRead).length;
-
-  void _markAllRead() {
-    setState(() {
-      for (final n in _notifications) {
-        n.isRead = true;
-      }
-    });
-  }
-
-  void _markRead(int index) {
-    setState(() => _notifications[index].isRead = true);
-  }
-
-  void _deleteNotification(int index) {
-    setState(() => _notifications.removeAt(index));
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<AppProvider>();
+    final notifications = provider.notifications;
+    final unread = provider.unreadNotificationCount;
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -97,16 +25,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               'Notifications',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            if (_unreadCount > 0) ...[
+            if (unread > 0) ...[
               const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '$_unreadCount',
+                  '',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
@@ -118,9 +49,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
         ),
         actions: [
-          if (_unreadCount > 0)
+          if (unread > 0)
             TextButton(
-              onPressed: _markAllRead,
+              onPressed: () => provider.markAllNotificationsRead(),
               child: const Text(
                 'Mark all read',
                 style: TextStyle(color: Colors.white70, fontSize: 13),
@@ -128,16 +59,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
         ],
       ),
-      body: _notifications.isEmpty
-          ? _EmptyState()
+      body: notifications.isEmpty
+          ? const _EmptyState()
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              itemCount: _notifications.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+              itemCount: notifications.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, indent: 72),
               itemBuilder: (_, i) {
-                final notif = _notifications[i];
+                final notif = notifications[i];
                 return Dismissible(
-                  key: Key('notif_$i${notif.title}'),
+                  key: Key('notif_'),
                   direction: DismissDirection.endToStart,
                   background: Container(
                     alignment: Alignment.centerRight,
@@ -148,10 +80,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  onDismissed: (_) => _deleteNotification(i),
+                  onDismissed: (_) => provider.deleteNotification(notif.id),
                   child: _NotificationTile(
                     item: notif,
-                    onTap: () => _markRead(i),
+                    onTap: () => provider.markNotificationRead(notif.id),
                   ),
                 );
               },
@@ -161,29 +93,29 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 }
 
 class _NotificationTile extends StatelessWidget {
-  final _NotifItem item;
+  final AppNotification item;
   final VoidCallback onTap;
 
   const _NotificationTile({required this.item, required this.onTap});
 
   Color get _iconBg {
     switch (item.type) {
-      case _NotifType.busApproaching:
+      case AppNotificationType.busApproaching:
         return AppColors.primary;
-      case _NotifType.occupancyUpdate:
+      case AppNotificationType.occupancyUpdate:
         return AppColors.accent;
-      case _NotifType.routeStatus:
+      case AppNotificationType.routeStatus:
         return AppColors.statusOperating;
     }
   }
 
   IconData get _icon {
     switch (item.type) {
-      case _NotifType.busApproaching:
+      case AppNotificationType.busApproaching:
         return Icons.directions_bus_rounded;
-      case _NotifType.occupancyUpdate:
+      case AppNotificationType.occupancyUpdate:
         return Icons.people_rounded;
-      case _NotifType.routeStatus:
+      case AppNotificationType.routeStatus:
         return Icons.route_rounded;
     }
   }
@@ -199,7 +131,6 @@ class _NotificationTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon
               Container(
                 width: 44,
                 height: 44,
@@ -210,8 +141,6 @@ class _NotificationTile extends StatelessWidget {
                 child: Icon(_icon, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 14),
-
-              // Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,14 +197,17 @@ class _NotificationTile extends StatelessWidget {
   String _formatTime(DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes} mins ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return ' mins ago';
+    if (diff.inHours < 24) return 'h ago';
     if (diff.inDays == 1) return 'Yesterday';
-    return '${diff.inDays} days ago';
+    return ' days ago';
   }
 }
 
 class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -298,29 +230,12 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Bus alerts and updates will appear here.',
+            'Bus approaching alerts, occupancy updates,\nand route status changes will appear here.',
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: Colors.grey[400]),
           ),
         ],
       ),
     );
   }
-}
-
-enum _NotifType { busApproaching, occupancyUpdate, routeStatus }
-
-class _NotifItem {
-  final _NotifType type;
-  final String title;
-  final String body;
-  final DateTime time;
-  bool isRead;
-
-  _NotifItem({
-    required this.type,
-    required this.title,
-    required this.body,
-    required this.time,
-    required this.isRead,
-  });
 }

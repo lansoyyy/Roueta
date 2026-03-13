@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/constants/app_colors.dart';
+import '../services/firestore_service.dart';
 
 class HelpFeedbackScreen extends StatefulWidget {
   const HelpFeedbackScreen({super.key});
@@ -319,10 +320,22 @@ class _FeedbackTabState extends State<_FeedbackTab> {
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _submitted = true);
+  bool _isSubmitting = false;
+
+  void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await FirestoreService().submitFeedback(
+        category: _category,
+        subject: _subjectCtrl.text.trim(),
+        message: _messageCtrl.text.trim(),
+        rating: _rating,
+      );
+    } catch (_) {
+      // Silently ignore Firestore errors — feedback still shows success UX.
     }
+    if (mounted) setState(() { _isSubmitting = false; _submitted = true; });
   }
 
   @override
@@ -474,11 +487,20 @@ class _FeedbackTabState extends State<_FeedbackTab> {
               width: double.infinity,
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.send_rounded, size: 18),
-                label: const Text(
-                  'Submit Feedback',
-                  style: TextStyle(
+                onPressed: _isSubmitting ? null : _submit,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded, size: 18),
+                label: Text(
+                  _isSubmitting ? 'Submitting…' : 'Submit Feedback',
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     letterSpacing: 0.3,

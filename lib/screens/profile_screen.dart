@@ -122,7 +122,9 @@ class _DriverProfileView extends StatelessWidget {
                 label: 'Trip History',
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MyRoutesScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const MyRoutesScreen(initialTabIndex: 1),
+                  ),
                 ),
               ),
               const SizedBox(height: 18),

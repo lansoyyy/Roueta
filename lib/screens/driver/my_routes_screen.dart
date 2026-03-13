@@ -7,7 +7,9 @@ import '../../providers/auth_provider.dart';
 import '../active_bus_screen.dart';
 
 class MyRoutesScreen extends StatefulWidget {
-  const MyRoutesScreen({super.key});
+  final int initialTabIndex;
+
+  const MyRoutesScreen({super.key, this.initialTabIndex = 0});
 
   @override
   State<MyRoutesScreen> createState() => _MyRoutesScreenState();
@@ -20,7 +22,11 @@ class _MyRoutesScreenState extends State<MyRoutesScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex,
+    );
   }
 
   @override
@@ -108,7 +114,16 @@ class _AssignedRoutesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
     final auth = context.watch<AuthProvider>();
-    final routes = provider.routes;
+
+    // Show only routes assigned to this driver/conductor.
+    final assignedIds = auth.assignedRoutes;
+    final routes = assignedIds.isEmpty
+        ? provider.routes
+        : provider.routes
+            .where((r) => assignedIds.contains(r.id))
+            .toList();
+
+    final isOnDuty = provider.activeDriverRoute != null;
 
     return Column(
       children: [
@@ -150,72 +165,94 @@ class _AssignedRoutesTab extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.statusOperating,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'On Duty',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+              if (isOnDuty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.statusOperating,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'On Duty',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
 
-        // Routes list
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            itemCount: routes.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) {
-              final route = routes[i];
-              final isActive = provider.activeDriverRoute?.id == route.id;
-              return _AssignedRouteCard(
-                route: route,
-                isActive: isActive,
-                onTap: () async {
-                  if (route.status == RouteStatus.unavailable) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                          'This route is currently unavailable',
+        if (routes.isEmpty)
+          Expanded(
+            child: Center(
+              child: Text(
+                'No assigned routes',
+                style: TextStyle(color: Colors.grey[500], fontSize: 14),
+              ),
+            ),
+          )
+        else
+          // Routes list
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              itemCount: routes.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (_, i) {
+                final route = routes[i];
+                final isActive = provider.activeDriverRoute?.id == route.id;
+                return _AssignedRouteCard(
+                  route: route,
+                  isActive: isActive,
+                  onTap: () async {
+                    if (route.status == RouteStatus.unavailable) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            'This route is currently unavailable',
+                          ),
+                          backgroundColor: AppColors.statusUnavailable,
+                          behavior: SnackBarBehavior.floating,
                         ),
-                        backgroundColor: AppColors.statusUnavailable,
-                        behavior: SnackBarBehavior.floating,
-                      ),
+                      );
+                      return;
+                    }
+
+                    final variantId = await _pickVariant(context, route);
+                    if (variantId == null || !context.mounted) return;
+
+                    provider.setActiveDriverRoute(
+                      route,
+                      variantId: variantId,
+                      driverBadge: auth.driverBadge,
+                      driverName: auth.driverName,
                     );
-                    return;
-                  }
-
-                  final variantId = await _pickVariant(context, route);
-                  if (variantId == null) return;
-
-                  provider.setActiveDriverRoute(route, variantId: variantId);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ActiveBusScreen(
-                        route: route,
-                        initialVariantId: variantId,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ActiveBusScreen(
+                          route: route,
+                          initialVariantId: variantId,
+                        ),
                       ),
-                    ),
-                  ).then((_) => provider.stopDriverRoute());
-                },
-              );
-            },
+                    ).then((_) {
+                      if (context.mounted) {
+                        provider.stopDriverRoute(
+                          driverBadge: auth.driverBadge,
+                        );
+                      }
+                    });
+                  },
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }

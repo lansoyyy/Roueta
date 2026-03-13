@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../models/bus_location_data.dart';
 import '../models/bus_route.dart';
 import '../providers/app_provider.dart';
+import '../providers/settings_provider.dart';
+import '../services/directions_service.dart';
 import '../services/notification_service.dart';
 
 class RouteMapScreen extends StatefulWidget {
@@ -21,20 +26,18 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
-  BusStop? _nearestStop;
-  int _nearestMinutes = 2;
-  bool _notificationSent = false;
-  Timer? _timer;
-  late String _variantId;
+  bool _loadingPolyline = true;
 
-  OccupancyStatus _routeOccupancy = OccupancyStatus.limitedSeats;
-  DateTime _occupancyLastUpdated = DateTime.now().subtract(
-    const Duration(minutes: 8),
-  );
+  // ETA state
+  BusStop? _nextStop;
+  int _etaMinutes = 0;
+  bool _notificationSent = false;
+  Timer? _etaTimer;
+
+  late String _variantId;
 
   RouteVariant get _variant =>
       widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
-
   List<BusStop> get _stops => _variant.stops;
 
   @override
@@ -47,117 +50,177 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         widget.route.defaultVariantId;
     widget.route.selectVariant(_variantId);
 
-    if (widget.route.occupancyStatus != null) {
-      _routeOccupancy = widget.route.occupancyStatus!;
-      _occupancyLastUpdated =
-          widget.route.occupancyLastUpdated ?? DateTime.now();
-    }
+    _buildStopMarkers();
+    _fetchRoadPolyline();
 
-    _buildMapElements();
-    _simulateApproach();
+    // ETA refresh every 5 s
+    _etaTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (mounted) _refreshEta();
+    });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _etaTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
 
-  void _changeVariant(String newVariantId) {
-    setState(() {
-      _variantId = newVariantId;
-      widget.route.selectVariant(newVariantId);
-      _nearestMinutes = 2;
-      _notificationSent = false;
-    });
+  // ── Polyline ──────────────────────────────────────────────────────────────
 
-    context.read<AppProvider>().selectRoute(
-      widget.route,
-      variantId: newVariantId,
+  Future<void> _fetchRoadPolyline() async {
+    setState(() => _loadingPolyline = true);
+    final points = await DirectionsService().getPolylineForVariant(
+      widget.route.id,
+      _variantId,
+      _stops,
     );
-    _buildMapElements();
-  }
-
-  void _buildMapElements() {
-    if (_stops.isEmpty) return;
-
-    final markers = <Marker>{};
-
-    for (int i = 0; i < _stops.length; i++) {
-      final stop = _stops[i];
-      markers.add(
-        Marker(
-          markerId: MarkerId(stop.id),
-          position: stop.position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            i == 0 || i == _stops.length - 1
-                ? BitmapDescriptor.hueRed
-                : BitmapDescriptor.hueCyan,
-          ),
-          infoWindow: InfoWindow(title: stop.name),
-        ),
-      );
-    }
-
+    if (!mounted) return;
     final polyline = Polyline(
-      polylineId: PolylineId('${widget.route.id}_${_variant.id}'),
-      points: _variant.polylinePoints,
+      polylineId: PolylineId('${widget.route.id}_$_variantId'),
+      points: points,
       color: const Color(0xFF3F51B5),
-      width: 6,
+      width: 5,
       startCap: Cap.roundCap,
       endCap: Cap.roundCap,
     );
+    setState(() {
+      _polylines = {polyline};
+      _loadingPolyline = false;
+    });
+    _refreshEta();
+  }
+
+  void _buildStopMarkers() {
+    final markers = <Marker>{};
+    for (int i = 0; i < _stops.length; i++) {
+      final stop = _stops[i];
+      markers.add(Marker(
+        markerId: MarkerId(stop.id),
+        position: stop.position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(
+          i == 0 || i == _stops.length - 1
+              ? BitmapDescriptor.hueRed
+              : BitmapDescriptor.hueCyan,
+        ),
+        infoWindow: InfoWindow(title: stop.name),
+      ));
+    }
+    _markers = markers;
+  }
+
+  // ── Bus markers from Firestore ────────────────────────────────────────────
+
+  Set<Marker> _buildAllMarkers(List<BusLocationData> buses) {
+    final m = <Marker>{..._markers};
+    for (final bus in buses) {
+      m.add(Marker(
+        markerId: MarkerId('bus_${bus.driverBadge}'),
+        position: bus.position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        infoWindow: InfoWindow(
+          title: bus.driverBadge,
+          snippet: 'Stop ${bus.currentStopIndex + 1} of ${_stops.length}',
+        ),
+      ));
+    }
+    return m;
+  }
+
+  // ── ETA calculation ───────────────────────────────────────────────────────
+
+  void _refreshEta() {
+    final provider = context.read<AppProvider>();
+    final buses = provider.getBusLocationsForRoute(widget.route.id);
+
+    // Filter to buses on current variant for best accuracy.
+    final variantBuses =
+        buses.where((b) => b.variantId == _variantId).toList();
+    final allBuses = variantBuses.isNotEmpty ? variantBuses : buses;
+
+    if (allBuses.isEmpty || _stops.isEmpty) {
+      setState(() {
+        _nextStop = _stops.isNotEmpty ? _stops.first : null;
+        _etaMinutes = 0;
+      });
+      return;
+    }
+
+    // Pick the bus that is farthest along the route (highest stop index).
+    final bus = allBuses.reduce(
+      (a, b) => a.currentStopIndex >= b.currentStopIndex ? a : b,
+    );
+
+    final busStopIdx = bus.currentStopIndex.clamp(0, _stops.length - 1);
+    final nextStopIdx = (busStopIdx + 1).clamp(0, _stops.length - 1);
+    final next = _stops[nextStopIdx];
+
+    // ETA to the next stop: distance / avg speed (15 km/h = 250 m/min).
+    final distanceM = Geolocator.distanceBetween(
+      bus.lat,
+      bus.lng,
+      next.position.latitude,
+      next.position.longitude,
+    );
+    final minsToNext = math.max(1, (distanceM / 250).ceil());
+
+    if (minsToNext <= 2 && !_notificationSent) {
+      _notificationSent = true;
+      NotificationService().showBusApproachingNotification(
+        stopName: next.name,
+        minutesAway: minsToNext,
+      );
+      provider.addBusApproachingNotification(
+        routeCode: widget.route.code,
+        stopName: next.name,
+        minutesAway: minsToNext,
+      );
+    }
+    if (minsToNext > 2) _notificationSent = false;
 
     setState(() {
-      _markers = markers;
-      _polylines = {polyline};
-      _nearestStop = _stops.length > 1 ? _stops[1] : _stops.first;
+      _nextStop = next;
+      _etaMinutes = minsToNext;
     });
   }
 
-  void _simulateApproach() {
-    _timer = Timer.periodic(const Duration(seconds: 20), (_) {
-      if (!mounted || _stops.isEmpty || _nearestStop == null) return;
+  // ── Variant change ────────────────────────────────────────────────────────
 
-      setState(() {
-        if (_nearestMinutes > 1) {
-          _nearestMinutes--;
-        } else {
-          final idx = _stops.indexOf(_nearestStop!);
-          if (idx + 1 < _stops.length) {
-            _nearestStop = _stops[idx + 1];
-            _nearestMinutes = 4;
-            _notificationSent = false;
-          }
-        }
-      });
-
-      if (_nearestMinutes == 2 && !_notificationSent && _nearestStop != null) {
-        _notificationSent = true;
-        NotificationService().showBusApproachingNotification(
-          stopName: _nearestStop!.name,
-          minutesAway: 2,
-        );
-      }
+  void _changeVariant(String newVariantId) {
+    setState(() {
+      _variantId = newVariantId;
+      _loadingPolyline = true;
+      _nextStop = null;
+      _etaMinutes = 0;
+      _notificationSent = false;
+      widget.route.selectVariant(newVariantId);
     });
+    context
+        .read<AppProvider>()
+        .selectRoute(widget.route, variantId: newVariantId);
+    _buildStopMarkers();
+    _fetchRoadPolyline();
   }
+
+  // ── Map helpers ───────────────────────────────────────────────────────────
 
   LatLng get _mapCenter {
-    final pts = _variant.polylinePoints;
-    if (pts.isEmpty) return const LatLng(7.0644, 125.5214);
-
-    double lat = 0;
-    double lng = 0;
-    for (final p in pts) {
-      lat += p.latitude;
-      lng += p.longitude;
+    if (_stops.isEmpty) return const LatLng(7.0644, 125.5214);
+    double lat = 0, lng = 0;
+    for (final s in _stops) {
+      lat += s.position.latitude;
+      lng += s.position.longitude;
     }
-    return LatLng(lat / pts.length, lng / pts.length);
+    return LatLng(lat / _stops.length, lng / _stops.length);
   }
 
+  // ── Occupancy helpers ─────────────────────────────────────────────────────
+
+  OccupancyStatus get _occupancy =>
+      widget.route.occupancyStatus ?? OccupancyStatus.seatAvailable;
+
   String get _occupancyLabel {
-    switch (_routeOccupancy) {
+    switch (_occupancy) {
       case OccupancyStatus.seatAvailable:
         return 'Seats Available';
       case OccupancyStatus.limitedSeats:
@@ -168,7 +231,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   }
 
   Color get _occupancyColor {
-    switch (_routeOccupancy) {
+    switch (_occupancy) {
       case OccupancyStatus.seatAvailable:
         return AppColors.statusOperating;
       case OccupancyStatus.limitedSeats:
@@ -179,35 +242,136 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   }
 
   int get _staleMinutes =>
-      DateTime.now().difference(_occupancyLastUpdated).inMinutes;
+      widget.route.occupancyLastUpdated == null
+          ? 0
+          : DateTime.now()
+                .difference(widget.route.occupancyLastUpdated!)
+                .inMinutes;
 
-  bool get _isStale => _staleMinutes >= 5;
+  bool get _isStale =>
+      widget.route.occupancyLastUpdated != null && _staleMinutes >= 5;
+
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
+    final settings = context.watch<SettingsProvider>();
+    final buses = provider.getBusLocationsForRoute(widget.route.id);
+    final allMarkers = _buildAllMarkers(buses);
 
     return Scaffold(
       body: Column(
         children: [
+          // ── Map ──────────────────────────────────────────────────────────
           Expanded(
-            child: GoogleMap(
-              key: const ValueKey('route_map'),
-              initialCameraPosition: CameraPosition(
-                target: _mapCenter,
-                zoom: 13.5,
-              ),
-              onMapCreated: (ctrl) => _mapController = ctrl,
-              markers: _markers,
-              polylines: _polylines,
-              myLocationEnabled: provider.locationPermissionGranted,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              mapToolbarEnabled: false,
-              buildingsEnabled: true,
-              compassEnabled: false,
+            child: Stack(
+              children: [
+                GoogleMap(
+                  key: const ValueKey('route_map'),
+                  initialCameraPosition: CameraPosition(
+                    target: _mapCenter,
+                    zoom: 13.5,
+                  ),
+                  onMapCreated: (ctrl) => _mapController = ctrl,
+                  mapType: settings.googleMapType,
+                  trafficEnabled: settings.showTraffic,
+                  markers: allMarkers,
+                  polylines: _polylines,
+                  myLocationEnabled: provider.locationPermissionGranted,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                  mapToolbarEnabled: false,
+                  buildingsEnabled: true,
+                  compassEnabled: false,
+                ),
+                if (_loadingPolyline)
+                  const Positioned(
+                    top: 12,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: _RouteLoadingBadge(),
+                    ),
+                  ),
+                // My location button
+                if (provider.locationPermissionGranted)
+                  Positioned(
+                    bottom: 16,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () {
+                        _mapController?.animateCamera(
+                          CameraUpdate.newLatLng(provider.currentLatLng),
+                        );
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.my_location,
+                          color: AppColors.primary,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                // Active bus count
+                if (buses.isNotEmpty)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.directions_bus,
+                            color: AppColors.primary,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${buses.length} on route',
+                            style: TextStyle(
+                              color: AppColors.primaryDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
+
+          // ── Bottom panel ─────────────────────────────────────────────────
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -278,9 +442,9 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                           child: Text(v.shortLabel),
                         ),
                       )
-                      .toList(growable: false),
-                  onChanged: (value) {
-                    if (value != null) _changeVariant(value);
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) _changeVariant(v);
                   },
                   decoration: InputDecoration(
                     labelText: 'Trip Variant',
@@ -295,16 +459,58 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  _nearestStop == null
-                      ? 'No stop data available'
-                      : 'Approaching ${_nearestStop!.name} in $_nearestMinutes mins',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+
+                // ETA row
+                if (buses.isEmpty)
+                  Text(
+                    'No active bus on this route',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  )
+                else if (_nextStop != null)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.directions_bus,
+                        color: AppColors.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Bus approaching ${_nextStop!.name}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$_etaMinutes min',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+
                 const SizedBox(height: 8),
+
+                // Occupancy row
                 Row(
                   children: [
                     Container(
@@ -328,12 +534,64 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     const SizedBox(width: 8),
                     if (_isStale)
                       Text(
-                        'Last updated $_staleMinutes mins ago',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                        'Last updated $_staleMinutes min ago',
+                        style:
+                            TextStyle(color: Colors.grey[600], fontSize: 11),
+                      )
+                    else if (widget.route.occupancyLastUpdated != null)
+                      Text(
+                        'Just updated',
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 11,
+                        ),
                       ),
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RouteLoadingBadge extends StatelessWidget {
+  const _RouteLoadingBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Loading road route…',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.primaryDark,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
