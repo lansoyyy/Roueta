@@ -1,5 +1,103 @@
 # Roueta App - Missing Features & Future Enhancements
 
+## ⚠️ CRITICAL ISSUE: Routes Use Simulated Coordinates
+
+**Status:** ❌ NOT REAL DATA
+**Impact:** All bus stop coordinates are fake/simulated
+**Description:** The routes in [`lib/data/routes_data.dart`](lib/data/routes_data.dart:710-736) use mathematically generated coordinates with sine curves, NOT real GPS coordinates of actual Davao City bus stops.
+
+**Current Implementation:**
+```dart
+// lib/data/routes_data.dart:710-736
+static List<BusStop> _buildStops({
+  required String routeId,
+  required String variantId,
+  required List<String> stopNames,
+  required LatLng start,
+  required double latStep,
+  required double lngStep,
+}) {
+  final stops = <BusStop>[];
+
+  for (int i = 0; i < stopNames.length; i++) {
+    final curve = math.sin(i / 2.4) * 0.00055;  // SIMULATED CURVE
+    final latitude = start.latitude + (latStep * i) + curve;  // FAKE COORDINATES
+    final longitude = start.longitude + (lngStep * i) - curve;  // FAKE COORDINATES
+
+    stops.add(
+      BusStop(
+        id: '${routeId}_${variantId}_${i + 1}',
+        name: stopNames[i],
+        position: LatLng(latitude, longitude),  // NOT REAL GPS DATA
+        estimatedMinutesFromStart: i * 3,
+      ),
+    );
+  }
+
+  return stops;
+}
+```
+
+**Problem:**
+- All bus stops use simulated coordinates (e.g., `7.0000, 125.4700` with fake curves)
+- These are NOT actual GPS coordinates of Davao City bus stops
+- Routes will not match real-world locations
+- ETA calculations will be inaccurate
+- Maps will show routes in wrong locations
+
+**Required Fix:**
+Replace simulated coordinates with **real GPS coordinates** of actual Davao City bus stops:
+
+```dart
+// Example of REAL coordinates for Davao City
+static List<BusStop> _buildStops({
+  required String routeId,
+  required String variantId,
+  required List<String> stopNames,
+  required List<LatLng> realCoordinates,  // Use REAL coordinates
+}) {
+  final stops = <BusStop>[];
+
+  for (int i = 0; i < stopNames.length; i++) {
+    stops.add(
+      BusStop(
+        id: '${routeId}_${variantId}_${i + 1}',
+        name: stopNames[i],
+        position: realCoordinates[i],  // REAL GPS DATA
+        estimatedMinutesFromStart: i * 3,
+      ),
+    );
+  }
+
+  return stops;
+}
+
+// Example REAL coordinates for Davao City (these need to be verified):
+static const List<BusStop> _r102Stops = [
+  BusStop(
+    id: 'r102_am_out_1',
+    name: 'Toril District Hall',
+    position: LatLng(7.0856, 125.4867),  // REAL COORDINATE
+  ),
+  BusStop(
+    id: 'r102_am_out_2',
+    name: 'Fusion GTH',
+    position: LatLng(7.0833, 125.4921),  // REAL COORDINATE
+  ),
+  // ... more real coordinates
+];
+```
+
+**Action Required:**
+1. Survey actual GPS coordinates of all Davao City bus stops
+2. Replace simulated coordinate generation with real coordinate data
+3. Verify coordinates match real-world locations
+4. Test routes on actual map to ensure accuracy
+
+---
+
+## Summary
+
 This document outlines features that are currently missing or need implementation in the Roueta bus tracking application.
 
 ---

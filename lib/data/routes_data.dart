@@ -1,737 +1,988 @@
-import 'dart:math' as math;
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+﻿import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/bus_route.dart';
 
 class RoutesData {
   static List<BusRoute> get routes => [
-    _route(
-      id: 'r102',
-      code: 'R102',
-      name: 'Toril - GE Torres Route',
-      origin: 'Toril',
-      destination: 'GE Torres',
-      seed: const LatLng(7.0000, 125.4700),
-      amOutboundStops: const [
-        'Toril District Hall',
-        'Fusion GTH',
-        'Pepsi Dumoy',
-        'Bago Aplaya Crossing',
-        'Gulf View',
-        'Jollibee Puan',
-        'Coke Ulas',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'GE Torres (Sandawa near Palawan Pawnshop)',
-      ],
-      amInboundStops: const [
-        'GE Torres (Sandawa near Palawan Pawnshop)',
-        'Yellow Fin Quimpo',
-        'Coastal Rd. Times Beach',
-        'Shell Bago Aplaya',
-        'IWHA',
-        'GTH',
-        'Toril District Hall',
-      ],
-      pmOutboundStops: const [
-        'Ecoland Terminal',
-        'GE Torres (Sandawa near Panadero)',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Coke Ulas',
-        'Mercury Puan',
-        'Apo Golf',
-        'Shell Bago Aplaya',
-        'IWHA',
-        'GTH',
-        'Toril District Hall',
-      ],
-      pmInboundStops: const [
-        'Toril District Hall',
-        'Fusion GTH',
-        'Pepsi Dumoy',
-        'Bago Aplaya Crossing',
-        'Coastal Rd. Times Beach',
-        'Ecoland Terminal',
-      ],
-    ),
-    _route(
-      id: 'r103',
-      code: 'R103',
-      name: 'Toril - Roxas Route',
-      origin: 'Toril',
-      destination: 'Roxas',
-      seed: const LatLng(7.0060, 125.4740),
-      amOutboundStops: const [
-        'Toril District Hall',
-        'Fusion GTH',
-        'Pepsi Dumoy',
-        'Bago Aplaya Crossing',
-        'Coastal Rd. Times Beach',
-        'Ecoland Terminal',
-        'Felcris Centrale',
-        'Davao City Police Office',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Red Cross Roxas',
-      ],
-      amInboundStops: const [
-        'Red Cross Roxas',
-        'Artiaga Boulevard',
-        'Felcris Centrale',
-        'Yellow Fin Quimpo',
-        'Coastal Rd. Times Beach',
-        'Shell Bago Aplaya',
-        'IWHA',
-        'GTH',
-        'Toril District Hall',
-      ],
-      pmOutboundStops: const [
-        'Davao Light (C. Bangoy St.)',
-        'UM Bolton',
-        'Felcris Centrale',
-        'Yellow Fin Quimpo',
-        'Coastal Rd. Times Beach',
-        'Shell Bago Aplaya',
-        'IWHA',
-        'GTH',
-        'Toril District Hall',
-      ],
-      pmInboundStops: const [
-        'Toril District Hall',
-        'Fusion GTH',
-        'Pepsi Dumoy',
-        'Bago Aplaya Crossing',
-        'Coastal Rd. Times Beach',
-        'Ecoland Terminal',
-        'Felcris Centrale',
-        'Davao City Police Office',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Davao Light (C. Bangoy St.)',
-      ],
-    ),
-    _route(
-      id: 'r402',
-      code: 'R402',
-      name: 'Mintal - GE Torres Route',
-      origin: 'Mintal',
-      destination: 'GE Torres',
-      seed: const LatLng(7.1200, 125.4300),
-      amOutboundStops: const [
-        'Mintal Palengke',
-        'Sto Niño Mintal',
-        'Green Meadows',
-        'Catalunan Pequeño near footbridge',
-        'Wellspring Village',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'GE Torres (Sandawa near Palawan Pawnshop)',
-      ],
-      amInboundStops: const [
-        'GE Torres (Sandawa near Palawan Pawnshop)',
-        'Yellow Fin Quimpo',
-        'PWC Quimpo',
-        'LTO Ecoland',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Wellspring Village',
-        'Catalunan Pequeño near footbridge',
-        'Gaisano Capital',
-        'Vista Mall',
-        'Mintal Palengke',
-      ],
-      pmOutboundStops: const [
-        'Ecoland Terminal',
-        'GE Torres (Sandawa)',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Wellspring Village',
-        'Catalunan Pequeño near footbridge',
-        'Gaisano Capital',
-        'Vista Mall',
-        'Mintal Palengke',
-      ],
-      pmInboundStops: const [
-        'Mintal Palengke',
-        'Sto Niño Mintal',
-        'Green Meadows',
-        'Catalunan Pequeño near footbridge',
-        'Wellspring Village',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'SM Ecoland',
-        'PWC Quimpo',
-        'Ecoland Terminal',
-      ],
-    ),
-    _route(
-      id: 'r403',
-      code: 'R403',
-      name: 'Mintal - Roxas Route',
-      origin: 'Mintal',
-      destination: 'Roxas',
-      seed: const LatLng(7.1230, 125.4340),
-      amOutboundStops: const [
-        'Mintal Palengke',
-        'Sto Niño Mintal',
-        'Green Meadows',
-        'Catalunan Pequeño near footbridge',
-        'Wellspring Village',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
-        'Grand Menseng Hotel',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Davao Light (C. Bangoy St.)',
-      ],
-      amInboundStops: const [
-        'Davao Light (C. Bangoy St.)',
-        'San Pedro St. near Watsons Pharmacy',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Wellspring Village',
-        'Catalunan Pequeño near footbridge',
-        'Gaisano Capital',
-        'Vista Mall',
-        'Mintal Palengke',
-      ],
-      pmOutboundStops: const [
-        'Davao Light (C. Bangoy St.)',
-        'San Pedro St. near Watsons Pharmacy',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Wellspring Village',
-        'Catalunan Pequeño near footbridge',
-        'Gaisano Capital',
-        'Vista Mall',
-        'Mintal Palengke',
-      ],
-      pmInboundStops: const [
-        'Mintal Palengke',
-        'Sto Niño Mintal',
-        'Green Meadows',
-        'Catalunan Pequeño near footbridge',
-        'Wellspring Village',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
-        'Grand Menseng Hotel',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Davao Light (C. Bangoy St.)',
-      ],
-    ),
-    _route(
-      id: 'r503',
-      code: 'R503',
-      name: 'Bangkal - Roxas Route',
-      origin: 'Bangkal',
-      destination: 'Roxas',
-      seed: const LatLng(7.1500, 125.4950),
-      amOutboundStops: const [
-        'Hope Ave. Bangkal',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
-        'Grand Menseng Hotel',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Davao Light (C. Bangoy St.)',
-      ],
-      amInboundStops: const [
-        'Davao Light (C. Bangoy St.)',
-        'San Pedro St. near Watsons Pharmacy',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Hope Ave. Bangkal',
-      ],
-      pmOutboundStops: const [
-        'Davao Light (C. Bangoy St.)',
-        'San Pedro St. near Watsons Pharmacy',
-        'UM Matina',
-        'Alorica Davao',
-        'Shrine Hills Matina',
-        'Kawayan Drive',
-        'Matina Crossing near DCPO Police Station 3 - Talomo',
-        'Tahimik Ave. Matina',
-        'SPED Bangkal',
-        'Shell Bangkal',
-        'Hope Ave. Bangkal',
-      ],
-      pmInboundStops: const [
-        'Hope Ave. Bangkal',
-        'Ateneo Senior High',
-        'SPED Bangkal',
-        'Tahimik Ave. Matina',
-        'Matina Crossing near Central Convenience Store',
-        'Kawayan Drive',
-        'DGT',
-        'Water Dist. Matina',
-        'NCCC Maa',
-        'Ateneo Matina',
-        'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
-        'Grand Menseng Hotel',
-        'CM Recto Ave. (LBC Recto Branch)',
-        'Davao Light (C. Bangoy St.)',
-      ],
-    ),
-    _route(
-      id: 'r603',
-      code: 'R603',
-      name: 'Buhangin - Roxas Route',
-      origin: 'Buhangin',
-      destination: 'Roxas',
-      seed: const LatLng(7.1600, 125.5100),
-      amOutboundStops: const [
-        'Citymall Northtown',
-        'Jollibee Cabantian',
-        'NHA Buhangin',
-        'Buhangin Gym',
-        'Ladislawa',
-        'Abreeza Mall',
-        'NCCC Mall VP',
-        'Red Cross Roxas',
-      ],
-      amInboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'NCCC Mall VP',
-        'Abreeza Mall',
-        'JP Laurel Flyover',
-        'Ladislawa',
-        'Holy Child Cabantian',
-        'Jollibee Cabantian',
-        'Citymall Northtown',
-      ],
-      pmOutboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'NCCC Mall VP',
-        'Abreeza Mall',
-        'JP Laurel Flyover',
-        'Ladislawa',
-        'Citygate Buhangin',
-      ],
-      pmInboundStops: const [
-        'Citygate Buhangin',
-        'Ladislawa',
-        'Abreeza Mall',
-        'NCCC Mall VP',
-        'Red Cross Roxas',
-      ],
-    ),
-    _route(
-      id: 'r763',
-      code: 'R763',
-      name: 'Panacan (via Buhangin) - Roxas Route',
-      origin: 'Panacan',
-      destination: 'Roxas',
-      seed: const LatLng(7.1800, 125.5600),
-      amOutboundStops: const [
-        'Panacan Depot',
-        'Panacan Bypass Rd.',
-        'LPU Davao',
-        'Sta. Lucia Mall',
-        'Mcdo Pagibig',
-        'NHA Buhangin',
-        'Buhangin Gym',
-        'Ladislawa',
-        'Abreeza Mall',
-        'NCCC Mall VP',
-        'Red Cross Roxas',
-      ],
-      amInboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'NCCC Mall VP',
-        'Abreeza Mall',
-        'JP Laurel Flyover',
-        'Ladislawa',
-        'Milan Buhangin',
-        'NHA Buhangin',
-        'Laverna',
-        'Jose Maria College Landmark',
-        'Panacan Ave.',
-        'DavSam Ferry Terminal',
-        'Panacan Depot',
-      ],
-      pmOutboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'NCCC Mall VP',
-        'Abreeza Mall',
-        'JP Laurel Flyover',
-        'Ladislawa',
-        'Milan Buhangin',
-        'NHA Buhangin',
-        'Laverna',
-        'Jose Maria College Landmark',
-        'Panacan Ave.',
-        'DavSam Ferry Terminal',
-        'Panacan Depot',
-      ],
-      pmInboundStops: const [
-        'Panacan Depot',
-        'Panacan Bypass Rd.',
-        'LPU Davao',
-        'Sta. Lucia Mall',
-        'Mcdo Pagibig',
-        'NHA Buhangin',
-        'Buhangin Gym',
-        'Ladislawa',
-        'Abreeza Mall',
-        'NCCC Mall VP',
-        'Red Cross Roxas',
-      ],
-    ),
-    _route(
-      id: 'r783',
-      code: 'R783',
-      name: 'Panacan (via Angliongto) - Roxas Route',
-      origin: 'Panacan',
-      destination: 'Roxas',
-      seed: const LatLng(7.1850, 125.5650),
-      amOutboundStops: const [
-        'Panacan Depot',
-        'Panacan Bypass Rd.',
-        'LPU Davao',
-        'Sta. Lucia Mall',
-        'Mcdo Pagibig',
-        'Punad Bypass',
-        'Angliongto Arcade',
-        'Phil. Nikkei Jin Kai',
-        'SM Lanang',
-        'Carmelite Lanang',
-        'Merco Cabaguio',
-        'Assumption College',
-        'Agdao Flyover',
-        'Sta. Ana Sobrecarey',
-        'Red Cross Roxas',
-      ],
-      amInboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'Sta. Ana Sobrecarey',
-        'Agdao Flyover',
-        'Holy Cross R. Castillo',
-        'Jerome R. Castillo',
-        'Nova Tierra',
-        'Doña Pilar',
-        'Old Airport',
-        'Shell Doña Salud',
-        'Philippine Ports Authority',
-        'Sasa Palengke',
-        'DavSam Ferry Terminal',
-        'Panacan Depot',
-      ],
-      pmOutboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'Sta. Ana Sobrecarey',
-        'Agdao Flyover',
-        'Holy Cross R. Castillo',
-        'Jerome R. Castillo',
-        'Nova Tierra',
-        'Doña Pilar',
-        'Old Airport',
-        'Shell Doña Salud',
-        'Philippine Ports Authority',
-        'Sasa Palengke',
-        'DavSam Ferry Terminal',
-        'Panacan Depot',
-      ],
-      pmInboundStops: const [
-        'Panacan Depot',
-        'Panacan Bypass Rd.',
-        'LPU Davao',
-        'Sta. Lucia Mall',
-        'Mcdo Pagibig',
-        'Punad Bypass',
-        'Angliongto Arcade',
-        'Phil. Nikkei Jin Kai',
-        'SM Lanang',
-        'Carmelite Lanang',
-        'Merco Cabaguio',
-        'Assumption College',
-        'Agdao Flyover',
-        'Sta. Ana Sobrecarey',
-        'Red Cross Roxas',
-      ],
-    ),
-    _route(
-      id: 'r793',
-      code: 'R793',
-      name: 'Panacan (via R Castillo) - Roxas Route',
-      origin: 'Panacan',
-      destination: 'Roxas',
-      seed: const LatLng(7.1900, 125.5700),
-      amOutboundStops: const [
-        'NCCC Panacan',
-        'Sasa Palengke',
-        'Sulpicio Rd. Sasa',
-        'Doña Salud',
-        'Old Airport',
-        'Petron Doña Pilar',
-        'Nova Tierra',
-        'Jerome R. Castillo',
-        'Holy Cross R. Castillo',
-        'Agdao Flyover',
-        'Sta. Ana Sobrecarey',
-        'Red Cross Roxas',
-      ],
-      amInboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'Sta. Ana Sobrecarey',
-        'Agdao Flyover',
-        'Assumption College',
-        'Shell SPMC',
-        'Tebow Hospital Lanang',
-        'SM Lanang',
-        'Starbucks Damosa',
-        'Angliongto Arcade',
-        'Punad Bypass',
-        'Laverna',
-        'Jose Maria College Landmark',
-        'Panacan Ave.',
-        'NCCC Panacan',
-      ],
-      pmOutboundStops: const [
-        'Red Cross Roxas',
-        'Davao Mental Hospital',
-        'Sta. Ana Sobrecarey',
-        'Agdao Flyover',
-        'Assumption College',
-        'Shell SPMC',
-        'Tebow Hospital Lanang',
-        'SM Lanang',
-        'Starbucks Damosa',
-        'Angliongto Arcade',
-        'Punad Bypass',
-        'Laverna',
-        'Jose Maria College Landmark',
-        'Panacan Ave.',
-        'NCCC Panacan',
-      ],
-      pmInboundStops: const [
-        'NCCC Panacan',
-        'Sasa Palengke',
-        'Sulpicio Rd. Sasa',
-        'Doña Salud',
-        'Old Airport',
-        'Petron Doña Pilar',
-        'Nova Tierra',
-        'Jerome R. Castillo',
-        'Holy Cross R. Castillo',
-        'Agdao Flyover',
-        'Sta. Ana Sobrecarey',
-        'Red Cross Roxas',
-      ],
-    ),
+    _r102(),
+    _r103(),
+    _r402(),
+    _r403(),
+    _r503(),
+    _r603(),
+    _r763(),
+    _r783(),
+    _r793(),
   ];
 
-  static BusRoute _route({
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  static BusStop _s(
+    String routeId,
+    String variantId,
+    int idx,
+    String name,
+    double lat,
+    double lng,
+  ) =>
+      BusStop(
+        id: '${routeId}_${variantId}_$idx',
+        name: name,
+        position: LatLng(lat, lng),
+        estimatedMinutesFromStart: idx * 3,
+      );
+
+  static RouteVariant _v({
+    required String variantId,
+    required String label,
+    required RouteShift shift,
+    required RouteDirection direction,
+    required List<BusStop> stops,
+  }) =>
+      RouteVariant(
+        id: variantId,
+        label: label,
+        shift: shift,
+        direction: direction,
+        stops: stops,
+        polylinePoints:
+            stops.map((s) => s.position).toList(growable: false),
+      );
+
+  static BusRoute _build({
     required String id,
     required String code,
     required String name,
     required String origin,
     required String destination,
-    required LatLng seed,
-    required List<String> amOutboundStops,
-    required List<String> amInboundStops,
-    required List<String> pmOutboundStops,
-    required List<String> pmInboundStops,
-  }) {
-    final amOut = _variant(
-      routeId: id,
+    required RouteVariant amOut,
+    required RouteVariant amIn,
+    required RouteVariant pmOut,
+    required RouteVariant pmIn,
+  }) =>
+      BusRoute(
+        id: id,
+        code: code,
+        name: name,
+        origin: origin,
+        destination: destination,
+        amStartTime: '6:00 AM',
+        amEndTime: '10:00 AM',
+        pmStartTime: '4:00 PM',
+        pmEndTime: '9:00 PM',
+        variants: {
+          amOut.id: amOut,
+          amIn.id: amIn,
+          pmOut.id: pmOut,
+          pmIn.id: pmIn,
+        },
+        defaultVariantId: 'am_out',
+      );
+
+  // ---------------------------------------------------------------------------
+  // R102 – Toril – GE Torres
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r102() {
+    const r = 'r102';
+
+    final amOut = _v(
       variantId: 'am_out',
       label: 'AM Outbound',
       shift: RouteShift.am,
       direction: RouteDirection.outbound,
-      stopNames: amOutboundStops,
-      start: seed,
-      latStep: 0.0031,
-      lngStep: 0.0042,
+      stops: [
+        _s(r, 'am_out',  1,  'Toril District Hall',                   7.01857530967576,  125.49752945160083),
+        _s(r, 'am_out',  2,  'Fusion GTH',                            7.025698892542236, 125.50453761754194),
+        _s(r, 'am_out',  3,  'Pepsi Dumoy',                           7.023329840151131, 125.50068871155098),
+        _s(r, 'am_out',  4,  'Bago Aplaya Crossing',                  7.042824130139026, 125.52971547482498),
+        _s(r, 'am_out',  5,  'Gulf Vire',                             7.046178796107667, 125.53453721069407),
+        _s(r, 'am_out',  6,  'Jollibee Puan',                        7.051585874043629, 125.54229109431324),
+        _s(r, 'am_out',  7,  'Coke Ulas',                             7.053474931980843, 125.54436359895027),
+        _s(r, 'am_out',  8,  'Ateneo Senior High',                    7.060864554604337, 125.55678299327847),
+        _s(r, 'am_out',  9,  'SPED Bangkal',                          7.061362932543133, 125.55970237986399),
+        _s(r, 'am_out', 10,  'Tahimik Ave. Matina',                   7.0611689325111975,125.56320740006322),
+        _s(r, 'am_out', 11,  'Matina Crossing',                       7.058266967208352, 125.569762391052),
+        _s(r, 'am_out', 12,  'Kawayan Drive',                         7.055788612737783, 125.57543851106243),
+        _s(r, 'am_out', 13,  'DGT',                                   7.058353611624336, 125.58039303376741),
+        _s(r, 'am_out', 14,  'Water Dist. Matina',                    7.061017302356448, 125.59001891248525),
+        _s(r, 'am_out', 15,  'NCCC Maa',                              7.0619110502556826,125.59385166012267),
+        _s(r, 'am_out', 16,  'Ateneo Matina',                         7.062759783034674, 125.59743867572544),
+        _s(r, 'am_out', 17,  'GE Torres (Sandawa)',                   7.061446545475992, 125.60122807516602),
+      ],
     );
 
-    final amIn = _variant(
-      routeId: id,
+    final amIn = _v(
       variantId: 'am_in',
       label: 'AM Inbound',
       shift: RouteShift.am,
       direction: RouteDirection.inbound,
-      stopNames: amInboundStops,
-      start: LatLng(seed.latitude + 0.054, seed.longitude + 0.066),
-      latStep: -0.0030,
-      lngStep: -0.0040,
+      stops: [
+        _s(r, 'am_in', 1, 'GE Torres (Sandawa)',                     7.061446545475992, 125.60122807516602),
+        _s(r, 'am_in', 2, 'Yellow Fin Quimpo',                       7.055577448020908, 125.59961250780894),
+        _s(r, 'am_in', 3, 'Coastal Rd. Times Beach',                 7.0452226579005295,125.5915562689465),
+        _s(r, 'am_in', 4, 'Shell Bago Aplaya',                       7.042438125328425, 125.52897452339809),
+        _s(r, 'am_in', 5, 'IWHA Station',                            7.031834894392899, 125.51331936427333),
+        _s(r, 'am_in', 6, 'GTH',                                     7.025812548407179, 125.50437733730142),
+        _s(r, 'am_in', 7, 'Toril District Hall',                     7.01857530967576,  125.49752945160083),
+      ],
     );
 
-    final pmOut = _variant(
-      routeId: id,
+    final pmOut = _v(
       variantId: 'pm_out',
       label: 'PM Outbound',
       shift: RouteShift.pm,
       direction: RouteDirection.outbound,
-      stopNames: pmOutboundStops,
-      start: LatLng(seed.latitude + 0.022, seed.longitude + 0.018),
-      latStep: 0.0028,
-      lngStep: 0.0038,
+      stops: [
+        _s(r, 'pm_out',  1,  'Ecoland Terminal',                     7.055079609013119, 125.59968205747072),
+        _s(r, 'pm_out',  2,  'GE Torres (Sandawa)',                   7.0606257088610445,125.60146662185548),
+        _s(r, 'pm_out',  3,  'UM Matina',                             7.0631411341208565,125.59817587877563),
+        _s(r, 'pm_out',  4,  'Alorica Davao',                        7.061492938569922, 125.59127098528911),
+        _s(r, 'pm_out',  5,  'Shrine Hills Matina',                  7.057825343273126, 125.5794216899317),
+        _s(r, 'pm_out',  6,  'Kawayan Drive',                        7.055890402091169, 125.57563883607156),
+        _s(r, 'pm_out',  7,  'Matina Crossing (DCPO)',               7.059221779362475, 125.56786435434049),
+        _s(r, 'pm_out',  8,  'Tahimik Ave. Matina',                  7.061171351857061, 125.56320239004123),
+        _s(r, 'pm_out',  9,  'SPED Bangkal',                         7.061408837537958, 125.55969246138575),
+        _s(r, 'pm_out', 10,  'Shell Bangkal',                        7.060517756202169, 125.55430401623474),
+        _s(r, 'pm_out', 11,  'Coke Ulas',                            7.053537102889695, 125.54428506667371),
+        _s(r, 'pm_out', 12,  'Mercury Puan',                         7.052293002313232, 125.54295148303915),
+        _s(r, 'pm_out', 13,  'Apo Golf',                             7.046005722211973, 125.53412415123428),
+        _s(r, 'pm_out', 14,  'Shell Bago Aplaya',                    7.0380889488090945,125.52252973548912),
+        _s(r, 'pm_out', 15,  'IWHA',                                 7.031834894392899, 125.51331936427333),
+        _s(r, 'pm_out', 16,  'GTH',                                  7.015865672234538, 125.49780252470714),
+        _s(r, 'pm_out', 17,  'Toril District Hall',                  7.01857530967576,  125.49752945160083),
+      ],
     );
 
-    final pmIn = _variant(
-      routeId: id,
+    final pmIn = _v(
       variantId: 'pm_in',
       label: 'PM Inbound',
       shift: RouteShift.pm,
       direction: RouteDirection.inbound,
-      stopNames: pmInboundStops,
-      start: LatLng(seed.latitude + 0.047, seed.longitude + 0.061),
-      latStep: -0.0026,
-      lngStep: -0.0037,
+      stops: [
+        _s(r, 'pm_in', 1, 'Toril District Hall',                     7.01857530967576,  125.49752945160083),
+        _s(r, 'pm_in', 2, 'Fusion GTH',                              7.015865672234538, 125.49780252470714),
+        _s(r, 'pm_in', 3, 'Pepsi Dumoy',                             7.023329840151131, 125.50068871155098),
+        _s(r, 'pm_in', 4, 'Bago Aplaya Crossing',                    7.042824130139026, 125.52971547482498),
+        _s(r, 'pm_in', 5, 'Coastal Rd. Times Beach',                 7.0452226579005295,125.5915562689465),
+        _s(r, 'pm_in', 6, 'Ecoland Terminal',                        7.055079609013119, 125.59968205747072),
+      ],
     );
 
-    return BusRoute(
-      id: id,
-      code: code,
-      name: name,
-      origin: origin,
-      destination: destination,
-      amStartTime: '6:00 AM',
-      amEndTime: '10:00 AM',
-      pmStartTime: '4:00 PM',
-      pmEndTime: '9:00 PM',
-      variants: {
-        amOut.id: amOut,
-        amIn.id: amIn,
-        pmOut.id: pmOut,
-        pmIn.id: pmIn,
-      },
-      defaultVariantId: 'am_out',
+    return _build(
+      id: r, code: 'R102',
+      name: 'Toril - GE Torres Route',
+      origin: 'Toril', destination: 'GE Torres',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
     );
   }
 
-  static RouteVariant _variant({
-    required String routeId,
-    required String variantId,
-    required String label,
-    required RouteShift shift,
-    required RouteDirection direction,
-    required List<String> stopNames,
-    required LatLng start,
-    required double latStep,
-    required double lngStep,
-  }) {
-    final stops = _buildStops(
-      routeId: routeId,
-      variantId: variantId,
-      stopNames: stopNames,
-      start: start,
-      latStep: latStep,
-      lngStep: lngStep,
+  // ---------------------------------------------------------------------------
+  // R103 – Toril – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r103() {
+    const r = 'r103';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Toril District Hall',                   7.01857530967576,  125.49752945160083),
+        _s(r, 'am_out',  2, 'Fusion GTH',                            7.015865672234538, 125.49780252470714),
+        _s(r, 'am_out',  3, 'Pepsi Dumoy',                           7.023329840151131, 125.50068871155098),
+        _s(r, 'am_out',  4, 'Bago Aplaya Crossing',                  7.042824130139026, 125.52971547482498),
+        _s(r, 'am_out',  5, 'Coastal Rd. Times Beach',               7.0452226579005295,125.5915562689465),
+        _s(r, 'am_out',  6, 'Ecoland Terminal',                      7.055079609013119, 125.59968205747072),
+        _s(r, 'am_out',  7, 'Felcris Centrale',                      7.059943658064177, 125.60869034530712),
+        _s(r, 'am_out',  8, 'Davao City Police Office',              7.063287884164293, 125.61090525863925),
+        _s(r, 'am_out',  9, 'CM Recto (LBC Recto Branch)',           7.067109827662894, 125.61072031272349),
+        _s(r, 'am_out', 10, 'Red Cross Roxas',                       7.072610830052556, 125.6115644288388),
+      ],
     );
 
-    return RouteVariant(
-      id: variantId,
-      label: label,
-      shift: shift,
-      direction: direction,
-      stops: stops,
-      polylinePoints: stops.map((s) => s.position).toList(growable: false),
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in', 1, 'Red Cross Roxas',                         7.072610830052556, 125.6115644288388),
+        _s(r, 'am_in', 2, 'Artiaga Boulevard',                       7.064608654855327, 125.6140988492206),
+        _s(r, 'am_in', 3, 'Felcris Centrale',                        7.060605155427315, 125.60918109028236),
+        _s(r, 'am_in', 4, 'Yellow Fin Quimpo',                       7.0554988138005905,125.59965853842085),
+        _s(r, 'am_in', 5, 'Coastal Rd. Times Beach',                 7.045539221894273, 125.59156133829786),
+        _s(r, 'am_in', 6, 'Shell Bago Aplaya',                       7.042438125328425, 125.52897452339809),
+        _s(r, 'am_in', 7, 'IWHA',                                    7.031834894392899, 125.51331936427333),
+        _s(r, 'am_in', 8, 'GTH',                                     7.025992277751492, 125.50457434043632),
+        _s(r, 'am_in', 9, 'Toril District Hall',                     7.01857530967576,  125.49752945160083),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out', 1, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+        _s(r, 'pm_out', 2, 'UM Bolton',                              7.067117153656241, 125.60980822842654),
+        _s(r, 'pm_out', 3, 'Felcris Centrale',                       7.060605155427315, 125.60918109028236),
+        _s(r, 'pm_out', 4, 'Yellow Fin Quimpo',                      7.0554988138005905,125.59965853842085),
+        _s(r, 'pm_out', 5, 'Coastal Rd. Times Beach',                7.045539221894273, 125.59156133829786),
+        _s(r, 'pm_out', 6, 'Shell Bago Aplaya',                      7.042438125328425, 125.52897452339809),
+        _s(r, 'pm_out', 7, 'IWHA',                                   7.031834894392899, 125.51331936427333),
+        _s(r, 'pm_out', 8, 'GTH',                                    7.025992277751492, 125.50457434043632),
+        _s(r, 'pm_out', 9, 'Toril District Hall',                    7.01857530967576,  125.49752945160083),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Toril District Hall',                    7.01857530967576,  125.49752945160083),
+        _s(r, 'pm_in',  2, 'Fusion GTH',                             7.015865672234538, 125.49780252470714),
+        _s(r, 'pm_in',  3, 'Pepsi Dumoy',                            7.023329840151131, 125.50068871155098),
+        _s(r, 'pm_in',  4, 'Bago Aplaya Crossing',                   7.042824130139026, 125.52971547482498),
+        _s(r, 'pm_in',  5, 'Coastal Rd. Times Beach',                7.0452226579005295,125.5915562689465),
+        _s(r, 'pm_in',  6, 'Ecoland Terminal',                       7.055079609013119, 125.59968205747072),
+        _s(r, 'pm_in',  7, 'Felcris Centrale',                       7.059943658064177, 125.60869034530712),
+        _s(r, 'pm_in',  8, 'Davao City Police Office',               7.063287884164293, 125.61090525863925),
+        _s(r, 'pm_in',  9, 'CM Recto Ave. (LBC Recto Branch)',       7.066659879284418, 125.6106318195824),
+        _s(r, 'pm_in', 10, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R103',
+      name: 'Toril - Roxas Route',
+      origin: 'Toril', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
     );
   }
 
-  static List<BusStop> _buildStops({
-    required String routeId,
-    required String variantId,
-    required List<String> stopNames,
-    required LatLng start,
-    required double latStep,
-    required double lngStep,
-  }) {
-    final stops = <BusStop>[];
+  // ---------------------------------------------------------------------------
+  // R402 – Mintal – GE Torres
+  // ---------------------------------------------------------------------------
 
-    for (int i = 0; i < stopNames.length; i++) {
-      final curve = math.sin(i / 2.4) * 0.00055;
-      final latitude = start.latitude + (latStep * i) + curve;
-      final longitude = start.longitude + (lngStep * i) - curve;
+  static BusRoute _r402() {
+    const r = 'r402';
 
-      stops.add(
-        BusStop(
-          id: '${routeId}_${variantId}_${i + 1}',
-          name: stopNames[i],
-          position: LatLng(latitude, longitude),
-          estimatedMinutesFromStart: i * 3,
-        ),
-      );
-    }
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Mintal Palengke',                       7.0916813, 125.5029771),
+        _s(r, 'am_out',  2, 'Sto Nino Mintal',                       7.0856891, 125.5082963),
+        _s(r, 'am_out',  3, 'Green Meadows',                         7.0802349, 125.5131001),
+        _s(r, 'am_out',  4, 'Catalunan Pequeno near footbridge',     7.0741641, 125.5186047),
+        _s(r, 'am_out',  5, 'Wellspring Village',                    7.0695275, 125.5246370),
+        _s(r, 'am_out',  6, 'Ateneo Senior High',                    7.060864554604337, 125.55678299327847),
+        _s(r, 'am_out',  7, 'SPED Bangkal',                          7.061362932543133, 125.55970237986399),
+        _s(r, 'am_out',  8, 'Tahimik Ave. Matina',                   7.0611689325111975,125.56320740006322),
+        _s(r, 'am_out',  9, 'Matina Crossing',                       7.058266967208352, 125.569762391052),
+        _s(r, 'am_out', 10, 'Kawayan Drive',                         7.055788612737783, 125.57543851106243),
+        _s(r, 'am_out', 11, 'DGT',                                   7.058353611624336, 125.58039303376741),
+        _s(r, 'am_out', 12, 'Water District Matina',                 7.061017302356448, 125.59001891248525),
+        _s(r, 'am_out', 13, 'NCCC Maa',                              7.0619110502556826,125.59385166012267),
+        _s(r, 'am_out', 14, 'Ateneo Matina',                         7.062768817010731, 125.59761977749405),
+        _s(r, 'am_out', 15, 'GE Torres (Sandawa)',                   7.0614109,         125.6012486),
+      ],
+    );
 
-    return stops;
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'GE Torres (Sandawa)',                    7.0614109,         125.6012486),
+        _s(r, 'am_in',  2, 'Yellow Fin Quimpo',                      7.0554287,         125.5996255),
+        _s(r, 'am_in',  3, 'PWC Quimpo',                             7.0528969,         125.5945749),
+        _s(r, 'am_in',  4, 'LTO Ecoland',                            7.0509340,         125.5878979),
+        _s(r, 'am_in',  5, 'Kawayan Drive',                          7.055788612737783, 125.57543851106243),
+        _s(r, 'am_in',  6, 'Matina Crossing (DCPO)',                 7.0591393,         125.5680469),
+        _s(r, 'am_in',  7, 'Tahimik Ave. Matina',                    7.061171351857061, 125.56320239004123),
+        _s(r, 'am_in',  8, 'SPED Bangkal',                           7.061408837537958, 125.55969246138575),
+        _s(r, 'am_in',  9, 'Shell Bangkal',                          7.060517756202169, 125.55430401623474),
+        _s(r, 'am_in', 10, 'Wellspring Village',                     7.069983054087357, 125.52423877988046),
+        _s(r, 'am_in', 11, 'Catalunan Pequeno near footbridge',      7.074403636117461, 125.51845189215015),
+        _s(r, 'am_in', 12, 'Gaisano Capital',                        7.080844033463694, 125.51271444213823),
+        _s(r, 'am_in', 13, 'Vista Mall',                             7.08642393577315,  125.50780692265114),
+        _s(r, 'am_in', 14, 'Mintal Palengke',                        7.0916813,         125.5029771),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Ecoland Terminal',                      7.055079609013119, 125.59968205747072),
+        _s(r, 'pm_out',  2, 'GE Torres (Sandawa)',                   7.0606257088610445,125.60146662185548),
+        _s(r, 'pm_out',  3, 'UM Matina',                             7.0631411341208565,125.59817587877563),
+        _s(r, 'pm_out',  4, 'Alorica Davao',                        7.061492938569922, 125.59127098528911),
+        _s(r, 'pm_out',  5, 'Shrine Hills Matina',                  7.057825343273126, 125.5794216899317),
+        _s(r, 'pm_out',  6, 'Kawayan Drive',                        7.055890402091169, 125.57563883607156),
+        _s(r, 'pm_out',  7, 'Matina Crossing (DCPO)',               7.059221779362475, 125.56786435434049),
+        _s(r, 'pm_out',  8, 'Tahimik Ave. Matina',                  7.061171351857061, 125.56320239004123),
+        _s(r, 'pm_out',  9, 'SPED Bangkal',                         7.061408837537958, 125.55969246138575),
+        _s(r, 'pm_out', 10, 'Shell Bangkal',                        7.060517756202169, 125.55430401623474),
+        _s(r, 'pm_out', 11, 'Wellspring Village',                   7.069983054087357, 125.52423877988046),
+        _s(r, 'pm_out', 12, 'Catalunan Pequeno near footbridge',    7.074403636117461, 125.51845189215015),
+        _s(r, 'pm_out', 13, 'Gaisano Capital',                      7.080844033463694, 125.51271444213823),
+        _s(r, 'pm_out', 14, 'Vista Mall',                           7.08642393577315,  125.50780692265114),
+        _s(r, 'pm_out', 15, 'Mintal Palengke',                      7.0916813,         125.5029771),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Mintal Palengke',                        7.0916813, 125.5029771),
+        _s(r, 'pm_in',  2, 'Sto Nino Mintal',                        7.0856891, 125.5082963),
+        _s(r, 'pm_in',  3, 'Green Meadows',                          7.0802349, 125.5131001),
+        _s(r, 'pm_in',  4, 'Catalunan Pequeno near footbridge',      7.0741641, 125.5186047),
+        _s(r, 'pm_in',  5, 'Wellspring Village',                     7.0695275, 125.5246370),
+        _s(r, 'pm_in',  6, 'Ateneo Senior High',                     7.060864554604337, 125.55678299327847),
+        _s(r, 'pm_in',  7, 'SPED Bangkal',                           7.061362932543133, 125.55970237986399),
+        _s(r, 'pm_in',  8, 'Tahimik Ave. Matina',                    7.0611689325111975,125.56320740006322),
+        _s(r, 'pm_in',  9, 'Matina Crossing',                        7.058266967208352, 125.569762391052),
+        _s(r, 'pm_in', 10, 'Kawayan Drive',                          7.055788612737783, 125.57543851106243),
+        _s(r, 'pm_in', 11, 'SM Ecoland',                             7.0509340,         125.5878979),
+        _s(r, 'pm_in', 12, 'PWC Quimpo',                             7.0528969,         125.5945749),
+        _s(r, 'pm_in', 13, 'Ecoland Terminal',                       7.055079609013119, 125.59968205747072),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R402',
+      name: 'Mintal - GE Torres Route',
+      origin: 'Mintal', destination: 'GE Torres',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R403 – Mintal – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r403() {
+    const r = 'r403';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Mintal Palengke',                       7.0916813, 125.5029771),
+        _s(r, 'am_out',  2, 'Sto Nino Mintal',                       7.0856891, 125.5082963),
+        _s(r, 'am_out',  3, 'Green Meadows',                         7.0802349, 125.5131001),
+        _s(r, 'am_out',  4, 'Catalunan Pequeno near footbridge',     7.0741641, 125.5186047),
+        _s(r, 'am_out',  5, 'Wellspring Village',                    7.069623172646326, 125.52453175532172),
+        _s(r, 'am_out',  6, 'Ateneo Senior High',                    7.060864554604337, 125.55678299327847),
+        _s(r, 'am_out',  7, 'SPED Bangkal',                          7.061362932543133, 125.55970237986399),
+        _s(r, 'am_out',  8, 'Tahimik Ave. Matina',                   7.0611689325111975,125.56320740006322),
+        _s(r, 'am_out',  9, 'Matina Crossing',                       7.058266967208352, 125.569762391052),
+        _s(r, 'am_out', 10, 'Kawayan Drive',                         7.055788612737783, 125.57543851106243),
+        _s(r, 'am_out', 11, 'DGT',                                   7.058353611624336, 125.58039303376741),
+        _s(r, 'am_out', 12, 'Water Dist. Matina',                    7.061017302356448, 125.59001891248525),
+        _s(r, 'am_out', 13, 'NCCC Maa',                              7.0619110502556826,125.59385166012267),
+        _s(r, 'am_out', 14, 'Grand Menseng Hotel',                   7.064698731709079, 125.60657110786875),
+        _s(r, 'am_out', 15, 'CM Recto Ave. (LBC Recto Branch)',      7.066659879284418, 125.6106318195824),
+        _s(r, 'am_out', 16, 'Davao Light (C. Bangoy St.)',           7.072781016890752, 125.61067229677701),
+      ],
+    );
+
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+        _s(r, 'am_in',  2, 'San Pedro St. near Watsons',             7.06565726850648,  125.60779199919283),
+        _s(r, 'am_in',  3, 'UM Matina',                              7.0631411341208565,125.59817587877563),
+        _s(r, 'am_in',  4, 'Alorica Davao',                         7.061492938569922, 125.59127098528911),
+        _s(r, 'am_in',  5, 'Shrine Hills Matina',                   7.057825343273126, 125.5794216899317),
+        _s(r, 'am_in',  6, 'Kawayan Drive',                         7.055890402091169, 125.57563883607156),
+        _s(r, 'am_in',  7, 'Matina Crossing (DCPO)',                7.059221779362475, 125.56786435434049),
+        _s(r, 'am_in',  8, 'Tahimik Ave. Matina',                   7.061171351857061, 125.56320239004123),
+        _s(r, 'am_in',  9, 'SPED Bangkal',                          7.061408837537958, 125.55969246138575),
+        _s(r, 'am_in', 10, 'Shell Bangkal',                         7.060517756202169, 125.55430401623474),
+        _s(r, 'am_in', 11, 'Wellspring Village',                    7.069983054087357, 125.52423877988046),
+        _s(r, 'am_in', 12, 'Catalunan Pequeno near footbridge',     7.074403636117461, 125.51845189215015),
+        _s(r, 'am_in', 13, 'Gaisano Capital',                       7.080844033463694, 125.51271444213823),
+        _s(r, 'am_in', 14, 'Vista Mall',                            7.08642393577315,  125.50780692265114),
+        _s(r, 'am_in', 15, 'Mintal Palengke',                       7.0916813,         125.5029771),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Davao Light (C. Bangoy St.)',           7.072781016890752, 125.61067229677701),
+        _s(r, 'pm_out',  2, 'San Pedro St. near Watsons',            7.06565726850648,  125.60779199919283),
+        _s(r, 'pm_out',  3, 'UM Matina',                             7.0631411341208565,125.59817587877563),
+        _s(r, 'pm_out',  4, 'Alorica Davao',                        7.061492938569922, 125.59127098528911),
+        _s(r, 'pm_out',  5, 'Shrine Hills Matina',                  7.057825343273126, 125.5794216899317),
+        _s(r, 'pm_out',  6, 'Kawayan Drive',                        7.055890402091169, 125.57563883607156),
+        _s(r, 'pm_out',  7, 'Matina Crossing (DCPO)',               7.059221779362475, 125.56786435434049),
+        _s(r, 'pm_out',  8, 'Tahimik Ave. Matina',                  7.061171351857061, 125.56320239004123),
+        _s(r, 'pm_out',  9, 'SPED Bangkal',                         7.061408837537958, 125.55969246138575),
+        _s(r, 'pm_out', 10, 'Shell Bangkal',                        7.060517756202169, 125.55430401623474),
+        _s(r, 'pm_out', 11, 'Wellspring Village',                   7.069983054087357, 125.52423877988046),
+        _s(r, 'pm_out', 12, 'Catalunan Pequeno near footbridge',    7.074403636117461, 125.51845189215015),
+        _s(r, 'pm_out', 13, 'Gaisano Capital',                      7.080844033463694, 125.51271444213823),
+        _s(r, 'pm_out', 14, 'Vista Mall',                           7.08642393577315,  125.50780692265114),
+        _s(r, 'pm_out', 15, 'Mintal Palengke',                      7.0916813,         125.5029771),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Mintal Palengke',                        7.0916813, 125.5029771),
+        _s(r, 'pm_in',  2, 'Sto Nino Mintal',                        7.0856891, 125.5082963),
+        _s(r, 'pm_in',  3, 'Green Meadows',                          7.0802349, 125.5131001),
+        _s(r, 'pm_in',  4, 'Catalunan Pequeno near footbridge',      7.0741641, 125.5186047),
+        _s(r, 'pm_in',  5, 'Wellspring Village',                     7.069623172646326, 125.52453175532172),
+        _s(r, 'pm_in',  6, 'Ateneo Senior High',                     7.060864554604337, 125.55678299327847),
+        _s(r, 'pm_in',  7, 'SPED Bangkal',                           7.061362932543133, 125.55970237986399),
+        _s(r, 'pm_in',  8, 'Tahimik Ave. Matina',                    7.0611689325111975,125.56320740006322),
+        _s(r, 'pm_in',  9, 'Matina Crossing',                        7.058266967208352, 125.569762391052),
+        _s(r, 'pm_in', 10, 'Kawayan Drive',                          7.055788612737783, 125.57543851106243),
+        _s(r, 'pm_in', 11, 'DGT',                                    7.058353611624336, 125.58039303376741),
+        _s(r, 'pm_in', 12, 'Water Dist. Matina',                     7.061017302356448, 125.59001891248525),
+        _s(r, 'pm_in', 13, 'NCCC Maa',                               7.0619110502556826,125.59385166012267),
+        _s(r, 'pm_in', 14, 'Grand Menseng Hotel',                    7.064698731709079, 125.60657110786875),
+        _s(r, 'pm_in', 15, 'CM Recto Ave. (LBC Recto Branch)',       7.066659879284418, 125.6106318195824),
+        _s(r, 'pm_in', 16, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R403',
+      name: 'Mintal - Roxas Route',
+      origin: 'Mintal', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R503 – Bangkal – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r503() {
+    const r = 'r503';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Hope Ave. Bangkal',                     7.06094175665836,  125.55394071328725),
+        _s(r, 'am_out',  2, 'Ateneo Senior High',                    7.060864554604337, 125.55678299327847),
+        _s(r, 'am_out',  3, 'SPED Bangkal',                          7.061362932543133, 125.55970237986399),
+        _s(r, 'am_out',  4, 'Tahimik Ave. Matina',                   7.0611689325111975,125.56320740006322),
+        _s(r, 'am_out',  5, 'Matina Crossing',                       7.058266967208352, 125.569762391052),
+        _s(r, 'am_out',  6, 'Kawayan Drive',                         7.055788612737783, 125.57543851106243),
+        _s(r, 'am_out',  7, 'DGT',                                   7.058353611624336, 125.58039303376741),
+        _s(r, 'am_out',  8, 'Water Dist. Matina',                    7.061017302356448, 125.59001891248525),
+        _s(r, 'am_out',  9, 'NCCC Maa',                              7.0619110502556826,125.59385166012267),
+        _s(r, 'am_out', 10, 'Ateneo Matina',                         7.062768817010731, 125.59761977749405),
+        _s(r, 'am_out', 11, 'Pichon St. (OroDERM Hotel)',            7.067718663619696, 125.60328826830126),
+        _s(r, 'am_out', 12, 'Grand Menseng Hotel',                   7.064698731709079, 125.60657110786875),
+        _s(r, 'am_out', 13, 'CM Recto Ave. (LBC Recto Branch)',      7.066659879284418, 125.6106318195824),
+        _s(r, 'am_out', 14, 'Davao Light (C. Bangoy St.)',           7.072781016890752, 125.61067229677701),
+      ],
+    );
+
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+        _s(r, 'am_in',  2, 'San Pedro St. near Watsons',             7.065645056433382, 125.60778417590222),
+        _s(r, 'am_in',  3, 'UM Matina',                              7.0631411341208565,125.59817587877563),
+        _s(r, 'am_in',  4, 'Alorica Davao',                         7.061561287026659, 125.59156077173391),
+        _s(r, 'am_in',  5, 'Shrine Hills Matina',                   7.057729814938764, 125.57929008714297),
+        _s(r, 'am_in',  6, 'Kawayan Drive',                         7.055788612737783, 125.57543851106243),
+        _s(r, 'am_in',  7, 'Matina Crossing (DCPO)',                7.059158718303413, 125.56810660127924),
+        _s(r, 'am_in',  8, 'Tahimik Ave. Matina',                   7.0611689325111975,125.56320740006322),
+        _s(r, 'am_in',  9, 'SPED Bangkal',                          7.061362932543133, 125.55970237986399),
+        _s(r, 'am_in', 10, 'Shell Bangkal',                         7.0607059589260865,125.55529899846877),
+        _s(r, 'am_in', 11, 'Hope Ave. Bangkal',                     7.06094175665836,  125.55394071328725),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Davao Light (C. Bangoy St.)',           7.072781016890752, 125.61067229677701),
+        _s(r, 'pm_out',  2, 'San Pedro St. near Watsons',            7.065645056433382, 125.60778417590222),
+        _s(r, 'pm_out',  3, 'UM Matina',                             7.0631411341208565,125.59817587877563),
+        _s(r, 'pm_out',  4, 'Alorica Davao',                        7.061561287026659, 125.59156077173391),
+        _s(r, 'pm_out',  5, 'Shrine Hills Matina',                  7.057729814938764, 125.57929008714297),
+        _s(r, 'pm_out',  6, 'Kawayan Drive',                        7.055788612737783, 125.57543851106243),
+        _s(r, 'pm_out',  7, 'Matina Crossing (DCPO)',               7.059158718303413, 125.56810660127924),
+        _s(r, 'pm_out',  8, 'Tahimik Ave. Matina',                  7.0611689325111975,125.56320740006322),
+        _s(r, 'pm_out',  9, 'SPED Bangkal',                         7.061362932543133, 125.55970237986399),
+        _s(r, 'pm_out', 10, 'Shell Bangkal',                        7.0607059589260865,125.55529899846877),
+        _s(r, 'pm_out', 11, 'Hope Ave. Bangkal',                    7.06094175665836,  125.55394071328725),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Hope Ave. Bangkal',                      7.06094175665836,  125.55394071328725),
+        _s(r, 'pm_in',  2, 'Ateneo Senior High',                     7.060864554604337, 125.55678299327847),
+        _s(r, 'pm_in',  3, 'SPED Bangkal',                           7.061362932543133, 125.55970237986399),
+        _s(r, 'pm_in',  4, 'Tahimik Ave. Matina',                    7.0611689325111975,125.56320740006322),
+        _s(r, 'pm_in',  5, 'Matina Crossing',                        7.058266967208352, 125.569762391052),
+        _s(r, 'pm_in',  6, 'Kawayan Drive',                          7.055788612737783, 125.57543851106243),
+        _s(r, 'pm_in',  7, 'DGT',                                    7.058353611624336, 125.58039303376741),
+        _s(r, 'pm_in',  8, 'Water Dist. Matina',                     7.061017302356448, 125.59001891248525),
+        _s(r, 'pm_in',  9, 'NCCC Maa',                               7.0619110502556826,125.59385166012267),
+        _s(r, 'pm_in', 10, 'Ateneo Matina',                          7.062768817010731, 125.59761977749405),
+        _s(r, 'pm_in', 11, 'Pichon St. (OroDERM Hotel)',             7.067718663619696, 125.60328826830126),
+        _s(r, 'pm_in', 12, 'Grand Menseng Hotel',                    7.064698731709079, 125.60657110786875),
+        _s(r, 'pm_in', 13, 'CM Recto Ave. (LBC Recto Branch)',       7.066659879284418, 125.6106318195824),
+        _s(r, 'pm_in', 14, 'Davao Light (C. Bangoy St.)',            7.072781016890752, 125.61067229677701),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R503',
+      name: 'Bangkal - Roxas Route',
+      origin: 'Bangkal', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R603 – Buhangin – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r603() {
+    const r = 'r603';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out', 1, 'Citymall Northtown',  7.14211,  125.60020),
+        _s(r, 'am_out', 2, 'Jollibee Cabantian',  7.13328,  125.64330),
+        _s(r, 'am_out', 3, 'Buhangin NHA',         7.11549,  125.62413),
+        _s(r, 'am_out', 4, 'Buhangin Gym',         7.10960,  125.61564),
+        _s(r, 'am_out', 5, 'Ladislawa',            7.09849,  125.61480),
+        _s(r, 'am_out', 6, 'Abreeza Mall',         7.09227,  125.61062),
+        _s(r, 'am_out', 7, 'NCCC Mall VP',         7.08605,  125.61093),
+        _s(r, 'am_out', 8, 'Red Cross Roxas',      7.07273,  125.61180),
+      ],
+    );
+
+    // Return route provided south-to-north; kept as-is (inbound Red Cross → Citymall).
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in', 1, 'Red Cross Roxas',      7.07254,  125.61155),
+        _s(r, 'am_in', 2, 'NCCC Mall VP',         7.08651,  125.61082),
+        _s(r, 'am_in', 3, 'Abreeza Mall',         7.09144,  125.61020),
+        _s(r, 'am_in', 4, 'Ladislawa',            7.09850,  125.61496),
+        _s(r, 'am_in', 5, 'Buhangin Gym',         7.10941,  125.61563),
+        _s(r, 'am_in', 6, 'Buhangin NHA',         7.11532,  125.62426),
+        _s(r, 'am_in', 7, 'Jollibee Cabantian',   7.13329,  125.64329),
+        _s(r, 'am_in', 8, 'Citymall Northtown',   7.14211,  125.60020),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out', 1, 'Red Cross Roxas',      7.07254,  125.61155),
+        _s(r, 'pm_out', 2, 'Davao Mental Hospital',7.07577,  125.61336),
+        _s(r, 'pm_out', 3, 'NCCC Mall VP',         7.08651,  125.61082),
+        _s(r, 'pm_out', 4, 'Abreeza Mall',         7.09144,  125.61020),
+        _s(r, 'pm_out', 5, 'JP Laurel Flyover',    7.09477,  125.61502),
+        _s(r, 'pm_out', 6, 'Ladislawa',            7.09850,  125.61496),
+        _s(r, 'pm_out', 7, 'Citygate Buhangin',    7.10959,  125.61297),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in', 1, 'Citygate Buhangin',    7.10954,  125.61279),
+        _s(r, 'pm_in', 2, 'Ladislawa',            7.09849,  125.61480),
+        _s(r, 'pm_in', 3, 'JP Laurel Flyover',    7.09479,  125.61450),
+        _s(r, 'pm_in', 4, 'Abreeza Mall',         7.09144,  125.61020),
+        _s(r, 'pm_in', 5, 'NCCC Mall VP',         7.08651,  125.61082),
+        _s(r, 'pm_in', 6, 'Davao Mental Hospital',7.07586,  125.61307),
+        _s(r, 'pm_in', 7, 'Red Cross Roxas',      7.07273,  125.61180),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R603',
+      name: 'Buhangin - Roxas Route',
+      origin: 'Buhangin', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R763 – Panacan (via Buhangin) – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r763() {
+    const r = 'r763';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Panacan Depot',       7.1483802243673145,125.65936831386026),
+        _s(r, 'am_out',  2, 'Panacan Bypass Rd.',   7.143770140614087, 125.65441917006825),
+        _s(r, 'am_out',  3, 'LPU Davao',            7.136791751687799, 125.64708078981438),
+        _s(r, 'am_out',  4, 'Sta. Lucia Mall',      7.132858865728123, 125.64292420752054),
+        _s(r, 'am_out',  5, 'McDo Pagibig',         7.126136844157472, 125.63398832776832),
+        _s(r, 'am_out',  6, 'NHA Buhangin',         7.114784094334299, 125.62337880872832),
+        _s(r, 'am_out',  7, 'Buhangin Gym',         7.10958724320657,  125.61577966794478),
+        _s(r, 'am_out',  8, 'Ladislawa',            7.099105274822992, 125.61474136029946),
+        _s(r, 'am_out',  9, 'Abreeza Mall',         7.090488911765794, 125.6098514669913),
+        _s(r, 'am_out', 10, 'NCCC Mall VP',         7.08500747306239,  125.61158161952932),
+        _s(r, 'am_out', 11, 'Red Cross Roxas',      7.072610830052556, 125.6115644288388),
+      ],
+    );
+
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'Red Cross Roxas',       7.072610830052556, 125.6115644288388),
+        _s(r, 'am_in',  2, 'Davao Mental Hospital', 7.076141316149247, 125.61328735437344),
+        _s(r, 'am_in',  3, 'NCCC Mall VP',          7.085832087865023, 125.61122741373902),
+        _s(r, 'am_in',  4, 'Abreeza Mall',          7.090293042067523, 125.61002514411945),
+        _s(r, 'am_in',  5, 'JP Laurel Flyover',     7.094932811177917, 125.61507660602784),
+        _s(r, 'am_in',  6, 'Ladislawa',             7.098993086513025, 125.61488357323728),
+        _s(r, 'am_in',  7, 'Milan Buhangin',        7.108787771004994, 125.6139568515754),
+        _s(r, 'am_in',  8, 'NHA Buhangin',          7.1143317219048,   125.62297245583643),
+        _s(r, 'am_in',  9, 'Laverna',               7.126913915173767, 125.6355141723046),
+        _s(r, 'am_in', 10, 'Jose Maria College',    7.134279475205123, 125.64471170882811),
+        _s(r, 'am_in', 11, 'Panacan Ave.',          7.143269083693995, 125.65403708357618),
+        _s(r, 'am_in', 12, 'DavSam Ferry Terminal', 7.14610995558344,  125.66128424997011),
+        _s(r, 'am_in', 13, 'Panacan Depot',         7.1483802243673145,125.65936831386026),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Red Cross Roxas',      7.072610830052556, 125.6115644288388),
+        _s(r, 'pm_out',  2, 'Davao Mental Hospital',7.076141316149247, 125.61328735437344),
+        _s(r, 'pm_out',  3, 'NCCC Mall VP',         7.085832087865023, 125.61122741373902),
+        _s(r, 'pm_out',  4, 'Abreeza Mall',         7.090293042067523, 125.61002514411945),
+        _s(r, 'pm_out',  5, 'JP Laurel Flyover',    7.094932811177917, 125.61507660602784),
+        _s(r, 'pm_out',  6, 'Ladislawa',            7.098993086513025, 125.61488357323728),
+        _s(r, 'pm_out',  7, 'Milan Buhangin',       7.108787771004994, 125.6139568515754),
+        _s(r, 'pm_out',  8, 'NHA Buhangin',         7.1143317219048,   125.62297245583643),
+        _s(r, 'pm_out',  9, 'Laverna',              7.126913915173767, 125.6355141723046),
+        _s(r, 'pm_out', 10, 'Jose Maria College',   7.134279475205123, 125.64471170882811),
+        _s(r, 'pm_out', 11, 'Panacan Ave.',         7.143269083693995, 125.65403708357618),
+        _s(r, 'pm_out', 12, 'DavSam Ferry Terminal',7.14610995558344,  125.66128424997011),
+        _s(r, 'pm_out', 13, 'Panacan Depot',        7.1483802243673145,125.65936831386026),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Panacan Depot',        7.1483802243673145,125.65936831386026),
+        _s(r, 'pm_in',  2, 'Panacan Bypass Rd.',   7.143770140614087, 125.65441917006825),
+        _s(r, 'pm_in',  3, 'LPU Davao',            7.136791751687799, 125.64708078981438),
+        _s(r, 'pm_in',  4, 'Sta. Lucia Mall',      7.132858865728123, 125.64292420752054),
+        _s(r, 'pm_in',  5, 'McDo Pagibig',         7.126136844157472, 125.63398832776832),
+        _s(r, 'pm_in',  6, 'NHA Buhangin',         7.114784094334299, 125.62337880872832),
+        _s(r, 'pm_in',  7, 'Buhangin Gym',         7.10958724320657,  125.61577966794478),
+        _s(r, 'pm_in',  8, 'Ladislawa',            7.099105274822992, 125.61474136029946),
+        _s(r, 'pm_in',  9, 'Abreeza Mall',         7.090488911765794, 125.6098514669913),
+        _s(r, 'pm_in', 10, 'NCCC Mall VP',         7.08500747306239,  125.61158161952932),
+        _s(r, 'pm_in', 11, 'Red Cross Roxas',      7.072610830052556, 125.6115644288388),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R763',
+      name: 'Panacan (via Buhangin) - Roxas Route',
+      origin: 'Panacan', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R783 – Panacan (via Angliongto) – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r783() {
+    const r = 'r783';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'Panacan Depot',            7.148351, 125.659342),
+        _s(r, 'am_out',  2, 'Panacan Bypass Rd.',        7.143647, 125.654327),
+        _s(r, 'am_out',  3, 'LPU Davao',                 7.136741, 125.647065),
+        _s(r, 'am_out',  4, 'Sta. Lucia Mall',           7.132763, 125.642831),
+        _s(r, 'am_out',  5, 'Mcdo Pagibig',              7.125792, 125.633892),
+        _s(r, 'am_out',  6, 'Punad Bypass',              7.122047, 125.632929),
+        _s(r, 'am_out',  7, 'Angliongto Arcade',         7.108694, 125.632363),
+        _s(r, 'am_out',  8, 'Phil. Nikkei Jin Kai',      7.102758, 125.632766),
+        _s(r, 'am_out',  9, 'SM Lanang',                 7.100564, 125.630351),
+        _s(r, 'am_out', 10, 'Carmelite Lanang',          7.099727, 125.627344),
+        _s(r, 'am_out', 11, 'Merco Cabaguio',            7.096424, 125.620624),
+        _s(r, 'am_out', 12, 'Assumption College',        7.086990, 125.623866),
+        _s(r, 'am_out', 13, 'Agdao Flyover',             7.080859, 125.624626),
+        _s(r, 'am_out', 14, 'Sta. Ana Sobrecarey',       7.076899, 125.619284),
+        _s(r, 'am_out', 15, 'Red Cross Roxas',           7.072698, 125.611480),
+      ],
+    );
+
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'Red Cross Roxas',            7.072698, 125.611480),
+        _s(r, 'am_in',  2, 'Davao Mental Hospital',      7.076234, 125.613292),
+        _s(r, 'am_in',  3, 'Sta. Ana Sobrecarey',        7.076899, 125.619284),
+        _s(r, 'am_in',  4, 'Agdao Flyover',              7.080859, 125.624626),
+        _s(r, 'am_in',  5, 'Holy Cross R. Castillo',     7.087379, 125.629481),
+        _s(r, 'am_in',  6, 'Jerome R. Castillo',         7.096886, 125.638286),
+        _s(r, 'am_in',  7, 'Nova Tierra',                7.110840, 125.649694),
+        _s(r, 'am_in',  8, 'Dona Pilar',                 7.114650, 125.652805),
+        _s(r, 'am_in',  9, 'Old Airport',                7.117241, 125.654859),
+        _s(r, 'am_in', 10, 'Shell Dona Salud',           7.121625, 125.658373),
+        _s(r, 'am_in', 11, 'Philippine Ports Authority', 7.127041, 125.661821),
+        _s(r, 'am_in', 12, 'Sasa Palengke',              7.134595, 125.661601),
+        _s(r, 'am_in', 13, 'DavSam Ferry Terminal',      7.14610995558344, 125.66128424997011),
+        _s(r, 'am_in', 14, 'Panacan Depot',              7.148351, 125.659342),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Red Cross Roxas',           7.072698, 125.611480),
+        _s(r, 'pm_out',  2, 'Davao Mental Hospital',     7.076234, 125.613292),
+        _s(r, 'pm_out',  3, 'Sta. Ana Sobrecarey',       7.076899, 125.619284),
+        _s(r, 'pm_out',  4, 'Agdao Flyover',             7.080859, 125.624626),
+        _s(r, 'pm_out',  5, 'Holy Cross R. Castillo',    7.087379, 125.629481),
+        _s(r, 'pm_out',  6, 'Jerome R. Castillo',        7.096886, 125.638286),
+        _s(r, 'pm_out',  7, 'Nova Tierra',               7.110840, 125.649694),
+        _s(r, 'pm_out',  8, 'Dona Pilar',                7.114650, 125.652805),
+        _s(r, 'pm_out',  9, 'Old Airport',               7.117241, 125.654859),
+        _s(r, 'pm_out', 10, 'Shell Dona Salud',          7.121625, 125.658373),
+        _s(r, 'pm_out', 11, 'Philippine Ports Authority',7.127041, 125.661821),
+        _s(r, 'pm_out', 12, 'Sasa Palengke',             7.134595, 125.661601),
+        _s(r, 'pm_out', 13, 'DavSam Ferry Terminal',     7.14610995558344, 125.66128424997011),
+        _s(r, 'pm_out', 14, 'Panacan Depot',             7.148351, 125.659342),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'Panacan Depot',             7.148351, 125.659342),
+        _s(r, 'pm_in',  2, 'Panacan Bypass Rd.',         7.143647, 125.654327),
+        _s(r, 'pm_in',  3, 'LPU Davao',                  7.136741, 125.647065),
+        _s(r, 'pm_in',  4, 'Sta. Lucia Mall',            7.132763, 125.642831),
+        _s(r, 'pm_in',  5, 'Mcdo Pagibig',               7.125792, 125.633892),
+        _s(r, 'pm_in',  6, 'Punad Bypass',               7.122047, 125.632929),
+        _s(r, 'pm_in',  7, 'Angliongto Arcade',          7.108694, 125.632363),
+        _s(r, 'pm_in',  8, 'Phil. Nikkei Jin Kai',       7.102758, 125.632766),
+        _s(r, 'pm_in',  9, 'SM Lanang',                  7.100564, 125.630351),
+        _s(r, 'pm_in', 10, 'Carmelite Lanang',           7.099727, 125.627344),
+        _s(r, 'pm_in', 11, 'Merco Cabaguio',             7.096424, 125.620624),
+        _s(r, 'pm_in', 12, 'Assumption College',         7.086990, 125.623866),
+        _s(r, 'pm_in', 13, 'Agdao Flyover',              7.080859, 125.624626),
+        _s(r, 'pm_in', 14, 'Sta. Ana Sobrecarey',        7.076899, 125.619284),
+        _s(r, 'pm_in', 15, 'Red Cross Roxas',            7.072698, 125.611480),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R783',
+      name: 'Panacan (via Angliongto) - Roxas Route',
+      origin: 'Panacan', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // R793 – Panacan (via R Castillo) – Roxas
+  // ---------------------------------------------------------------------------
+
+  static BusRoute _r793() {
+    const r = 'r793';
+
+    final amOut = _v(
+      variantId: 'am_out',
+      label: 'AM Outbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'am_out',  1, 'NCCC Panacan',            7.143951693564209, 125.66121195588696),
+        _s(r, 'am_out',  2, 'Sasa Palengke',            7.134595,          125.661601),
+        _s(r, 'am_out',  3, 'Sulpicio Rd. Sasa',        7.127609335602626, 125.661675557983),
+        _s(r, 'am_out',  4, 'Dona Salud',               7.1222935776519956,125.65875558521984),
+        _s(r, 'am_out',  5, 'Old Airport',              7.117205884351722, 125.65467495284958),
+        _s(r, 'am_out',  6, 'Petron Dona Pilar',        7.114635002992314, 125.65254134647583),
+        _s(r, 'am_out',  7, 'Nova Tierra',              7.110980064704668, 125.64954814880186),
+        _s(r, 'am_out',  8, 'Jerome R. Castillo',       7.09665698474913,  125.63786641688755),
+        _s(r, 'am_out',  9, 'Holy Cross R. Castillo',   7.08721563127331,  125.62900799073341),
+        _s(r, 'am_out', 10, 'Agdao Flyover',            7.080935317784382, 125.62460530324813),
+        _s(r, 'am_out', 11, 'Sta. Ana Sobrecarey',      7.076899,          125.619284),
+        _s(r, 'am_out', 12, 'Red Cross Roxas',          7.072610830052556, 125.6115644288388),
+      ],
+    );
+
+    final amIn = _v(
+      variantId: 'am_in',
+      label: 'AM Inbound',
+      shift: RouteShift.am,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'am_in',  1, 'Red Cross Roxas',           7.072610830052556, 125.6115644288388),
+        _s(r, 'am_in',  2, 'Davao Mental Hospital',     7.076141316149247, 125.61328735437344),
+        _s(r, 'am_in',  3, 'Sta. Ana Sobrecarey',       7.076899,          125.619284),
+        _s(r, 'am_in',  4, 'Agdao Flyover',             7.080935317784382, 125.62460530324813),
+        _s(r, 'am_in',  5, 'Assumption College',        7.087771291866992, 125.62378192592959),
+        _s(r, 'am_in',  6, 'Shell SPMC',                7.097941897318523, 125.62173814746481),
+        _s(r, 'am_in',  7, 'Tebow Hospital Lanang',     7.099321509512396, 125.62655759530764),
+        _s(r, 'am_in',  8, 'SM Lanang',                 7.100130578006676, 125.62942516123555),
+        _s(r, 'am_in',  9, 'Starbucks Damosa',          7.103273421001684, 125.63283102307423),
+        _s(r, 'am_in', 10, 'Angliongto Arcade',         7.109179284811052, 125.63240016549021),
+        _s(r, 'am_in', 11, 'Punad Bypass',              7.121548534303242, 125.63333729997544),
+        _s(r, 'am_in', 12, 'Laverna',                   7.126913915173767, 125.6355141723046),
+        _s(r, 'am_in', 13, 'Jose Maria College',        7.134279475205123, 125.64471170882811),
+        _s(r, 'am_in', 14, 'Landmark',                  7.138371248580803, 125.64891657559151),
+        _s(r, 'am_in', 15, 'Panacan Ave.',              7.143269083693995, 125.65403708357618),
+        _s(r, 'am_in', 16, 'NCCC Panacan',              7.143951693564209, 125.66121195588696),
+      ],
+    );
+
+    final pmOut = _v(
+      variantId: 'pm_out',
+      label: 'PM Outbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.outbound,
+      stops: [
+        _s(r, 'pm_out',  1, 'Red Cross Roxas',          7.072610830052556, 125.6115644288388),
+        _s(r, 'pm_out',  2, 'Davao Mental Hospital',    7.076141316149247, 125.61328735437344),
+        _s(r, 'pm_out',  3, 'Sta. Ana Sobrecarey',      7.076899,          125.619284),
+        _s(r, 'pm_out',  4, 'Agdao Flyover',            7.080935317784382, 125.62460530324813),
+        _s(r, 'pm_out',  5, 'Assumption College',       7.087771291866992, 125.62378192592959),
+        _s(r, 'pm_out',  6, 'Shell SPMC',               7.097941897318523, 125.62173814746481),
+        _s(r, 'pm_out',  7, 'Tebow Hospital Lanang',    7.099321509512396, 125.62655759530764),
+        _s(r, 'pm_out',  8, 'SM Lanang',                7.100130578006676, 125.62942516123555),
+        _s(r, 'pm_out',  9, 'Starbucks Damosa',         7.103273421001684, 125.63283102307423),
+        _s(r, 'pm_out', 10, 'Angliongto Arcade',        7.109179284811052, 125.63240016549021),
+        _s(r, 'pm_out', 11, 'Punad Bypass',             7.121548534303242, 125.63333729997544),
+        _s(r, 'pm_out', 12, 'Laverna',                  7.126913915173767, 125.6355141723046),
+        _s(r, 'pm_out', 13, 'Jose Maria College',       7.134279475205123, 125.64471170882811),
+        _s(r, 'pm_out', 14, 'Landmark',                 7.138371248580803, 125.64891657559151),
+        _s(r, 'pm_out', 15, 'Panacan Ave.',             7.143269083693995, 125.65403708357618),
+        _s(r, 'pm_out', 16, 'NCCC Panacan',             7.143951693564209, 125.66121195588696),
+      ],
+    );
+
+    final pmIn = _v(
+      variantId: 'pm_in',
+      label: 'PM Inbound',
+      shift: RouteShift.pm,
+      direction: RouteDirection.inbound,
+      stops: [
+        _s(r, 'pm_in',  1, 'NCCC Panacan',              7.143951693564209, 125.66121195588696),
+        _s(r, 'pm_in',  2, 'Sasa Palengke',             7.134595,          125.661601),
+        _s(r, 'pm_in',  3, 'Sulpicio Rd. Sasa',         7.127609335602626, 125.661675557983),
+        _s(r, 'pm_in',  4, 'Dona Salud',                7.1222935776519956,125.65875558521984),
+        _s(r, 'pm_in',  5, 'Old Airport',               7.117205884351722, 125.65467495284958),
+        _s(r, 'pm_in',  6, 'Petron Dona Pilar',         7.114635002992314, 125.65254134647583),
+        _s(r, 'pm_in',  7, 'Nova Tierra',               7.110980064704668, 125.64954814880186),
+        _s(r, 'pm_in',  8, 'Jerome R. Castillo',        7.09665698474913,  125.63786641688755),
+        _s(r, 'pm_in',  9, 'Holy Cross R. Castillo',    7.08721563127331,  125.62900799073341),
+        _s(r, 'pm_in', 10, 'Agdao Flyover',             7.080935317784382, 125.62460530324813),
+        _s(r, 'pm_in', 11, 'Sta. Ana Sobrecarey',       7.076899,          125.619284),
+        _s(r, 'pm_in', 12, 'Red Cross Roxas',           7.072610830052556, 125.6115644288388),
+      ],
+    );
+
+    return _build(
+      id: r, code: 'R793',
+      name: 'Panacan (via R Castillo) - Roxas Route',
+      origin: 'Panacan', destination: 'Roxas',
+      amOut: amOut, amIn: amIn, pmOut: pmOut, pmIn: pmIn,
+    );
   }
 }

@@ -13,7 +13,13 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Notification plugin must be initialised before Firebase.
+  // Firebase must be initialized before any Firebase services.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+    name: 'roueta-9f596',
+  );
+
+  // Notification plugin must be initialised after Firebase.
   await NotificationService().init();
 
   // Restore persisted driver session.
@@ -33,10 +39,6 @@ void main() async {
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
     ),
-  );
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
   );
 
   // Build app provider and kick off local + remote data loading.
