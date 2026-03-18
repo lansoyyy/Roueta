@@ -10,6 +10,7 @@ import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/directions_service.dart';
 import '../services/firestore_service.dart';
+import '../utils/map_marker_icons.dart';
 
 class ActiveBusScreen extends StatefulWidget {
   final BusRoute route;
@@ -38,6 +39,14 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   String? _driverBadge;
   String? _driverName;
 
+  // Custom marker icons
+  BitmapDescriptor? _startIcon;
+  BitmapDescriptor? _startSelectedIcon;
+  BitmapDescriptor? _endIcon;
+  BitmapDescriptor? _endSelectedIcon;
+  BitmapDescriptor? _midIcon;
+  BitmapDescriptor? _midSelectedIcon;
+
   RouteVariant get _variant =>
       widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
 
@@ -57,6 +66,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     widget.route.selectVariant(_variantId);
 
     _buildStopMarkers();
+    _loadMarkerIcons();
     _fetchRoadPolyline();
     _startGpsTracking();
   }
@@ -93,20 +103,49 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
 
   // ── Stop markers (no polyline — handled separately) ───────────────────────
 
+  Future<void> _loadMarkerIcons() async {
+    final start = await MapMarkerIcons.startStop();
+    final startSel = await MapMarkerIcons.startStop(selected: true);
+    final end = await MapMarkerIcons.endStop();
+    final endSel = await MapMarkerIcons.endStop(selected: true);
+    final mid = await MapMarkerIcons.busStop();
+    final midSel = await MapMarkerIcons.busStop(selected: true);
+    if (!mounted) return;
+    _startIcon = start;
+    _startSelectedIcon = startSel;
+    _endIcon = end;
+    _endSelectedIcon = endSel;
+    _midIcon = mid;
+    _midSelectedIcon = midSel;
+    _buildStopMarkers();
+  }
+
   void _buildStopMarkers() {
     if (_stops.isEmpty) return;
     final markers = <Marker>{};
     for (int i = 0; i < _stops.length; i++) {
       final stop = _stops[i];
+      final bool isCurrent = i == _currentStopIdx;
+      final BitmapDescriptor icon;
+      if (i == 0) {
+        icon = isCurrent
+            ? (_startSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
+      } else if (i == _stops.length - 1) {
+        icon = isCurrent
+            ? (_endSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
+      } else {
+        icon = isCurrent
+            ? (_midSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_midIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
+      }
       markers.add(
         Marker(
           markerId: MarkerId(stop.id),
           position: stop.position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            i == _currentStopIdx
-                ? BitmapDescriptor.hueRed
-                : BitmapDescriptor.hueCyan,
-          ),
+          icon: icon,
+          anchor: const Offset(0.5, 1.0),
           infoWindow: InfoWindow(title: stop.name),
         ),
       );
@@ -192,16 +231,30 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     final markers = <Marker>{};
     for (int i = 0; i < _stops.length; i++) {
       final stop = _stops[i];
-      markers.add(Marker(
-        markerId: MarkerId(stop.id),
-        position: stop.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          i == activeIdx
-              ? BitmapDescriptor.hueRed
-              : BitmapDescriptor.hueCyan,
+      final bool isCurrent = i == activeIdx;
+      final BitmapDescriptor icon;
+      if (i == 0) {
+        icon = isCurrent
+            ? (_startSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
+      } else if (i == _stops.length - 1) {
+        icon = isCurrent
+            ? (_endSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
+      } else {
+        icon = isCurrent
+            ? (_midSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_midIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
+      }
+      markers.add(
+        Marker(
+          markerId: MarkerId(stop.id),
+          position: stop.position,
+          icon: icon,
+          anchor: const Offset(0.5, 1.0),
+          infoWindow: InfoWindow(title: stop.name),
         ),
-        infoWindow: InfoWindow(title: stop.name),
-      ));
+      );
     }
     if (mounted) setState(() => _markers = markers);
   }
@@ -822,10 +875,7 @@ class _PolylineLoadingBadge extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 6,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 6),
         ],
       ),
       child: Row(

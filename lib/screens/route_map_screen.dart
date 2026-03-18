@@ -11,6 +11,7 @@ import '../providers/app_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/directions_service.dart';
 import '../services/notification_service.dart';
+import '../utils/map_marker_icons.dart';
 
 class RouteMapScreen extends StatefulWidget {
   final BusRoute route;
@@ -34,6 +35,12 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   bool _notificationSent = false;
   Timer? _etaTimer;
 
+  // Custom marker icons
+  BitmapDescriptor? _startIcon;
+  BitmapDescriptor? _endIcon;
+  BitmapDescriptor? _midIcon;
+  BitmapDescriptor? _busIcon;
+
   late String _variantId;
 
   RouteVariant get _variant =>
@@ -51,6 +58,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     widget.route.selectVariant(_variantId);
 
     _buildStopMarkers();
+    _loadMarkerIcons();
     _fetchRoadPolyline();
 
     // ETA refresh every 5 s
@@ -91,22 +99,50 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     _refreshEta();
   }
 
+  Future<void> _loadMarkerIcons() async {
+    final start = await MapMarkerIcons.startStop();
+    final end = await MapMarkerIcons.endStop();
+    final mid = await MapMarkerIcons.busStop();
+    final bus = await MapMarkerIcons.bus();
+    if (!mounted) return;
+    _startIcon = start;
+    _endIcon = end;
+    _midIcon = mid;
+    _busIcon = bus;
+    _buildStopMarkers();
+  }
+
   void _buildStopMarkers() {
+    if (_stops.isEmpty) return;
     final markers = <Marker>{};
     for (int i = 0; i < _stops.length; i++) {
       final stop = _stops[i];
-      markers.add(Marker(
-        markerId: MarkerId(stop.id),
-        position: stop.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          i == 0 || i == _stops.length - 1
-              ? BitmapDescriptor.hueRed
-              : BitmapDescriptor.hueCyan,
+      final BitmapDescriptor icon;
+      if (i == 0) {
+        icon = _startIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
+      } else if (i == _stops.length - 1) {
+        icon = _endIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      } else {
+        icon = _midIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
+      }
+      markers.add(
+        Marker(
+          markerId: MarkerId(stop.id),
+          position: stop.position,
+          icon: icon,
+          anchor: const Offset(0.5, 1.0),
+          infoWindow: InfoWindow(title: stop.name),
         ),
-        infoWindow: InfoWindow(title: stop.name),
-      ));
+      );
     }
-    _markers = markers;
+    if (mounted) {
+      setState(() => _markers = markers);
+    } else {
+      _markers = markers;
+    }
   }
 
   // ── Bus markers from Firestore ────────────────────────────────────────────
@@ -114,15 +150,19 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   Set<Marker> _buildAllMarkers(List<BusLocationData> buses) {
     final m = <Marker>{..._markers};
     for (final bus in buses) {
-      m.add(Marker(
-        markerId: MarkerId('bus_${bus.driverBadge}'),
-        position: bus.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-        infoWindow: InfoWindow(
-          title: bus.driverBadge,
-          snippet: 'Stop ${bus.currentStopIndex + 1} of ${_stops.length}',
+      m.add(
+        Marker(
+          markerId: MarkerId('bus_${bus.driverBadge}'),
+          position: bus.position,
+          icon: _busIcon ??
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          anchor: const Offset(0.5, 1.0),
+          infoWindow: InfoWindow(
+            title: bus.driverBadge,
+            snippet: 'Stop ${bus.currentStopIndex + 1} of ${_stops.length}',
+          ),
         ),
-      ));
+      );
     }
     return m;
   }
@@ -134,8 +174,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final buses = provider.getBusLocationsForRoute(widget.route.id);
 
     // Filter to buses on current variant for best accuracy.
-    final variantBuses =
-        buses.where((b) => b.variantId == _variantId).toList();
+    final variantBuses = buses.where((b) => b.variantId == _variantId).toList();
     final allBuses = variantBuses.isNotEmpty ? variantBuses : buses;
 
     if (allBuses.isEmpty || _stops.isEmpty) {
@@ -195,9 +234,10 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       _notificationSent = false;
       widget.route.selectVariant(newVariantId);
     });
-    context
-        .read<AppProvider>()
-        .selectRoute(widget.route, variantId: newVariantId);
+    context.read<AppProvider>().selectRoute(
+      widget.route,
+      variantId: newVariantId,
+    );
     _buildStopMarkers();
     _fetchRoadPolyline();
   }
@@ -241,12 +281,9 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     }
   }
 
-  int get _staleMinutes =>
-      widget.route.occupancyLastUpdated == null
-          ? 0
-          : DateTime.now()
-                .difference(widget.route.occupancyLastUpdated!)
-                .inMinutes;
+  int get _staleMinutes => widget.route.occupancyLastUpdated == null
+      ? 0
+      : DateTime.now().difference(widget.route.occupancyLastUpdated!).inMinutes;
 
   bool get _isStale =>
       widget.route.occupancyLastUpdated != null && _staleMinutes >= 5;
@@ -290,9 +327,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     top: 12,
                     left: 0,
                     right: 0,
-                    child: Center(
-                      child: _RouteLoadingBadge(),
-                    ),
+                    child: Center(child: _RouteLoadingBadge()),
                   ),
                 // My location button
                 if (provider.locationPermissionGranted)
@@ -535,16 +570,12 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     if (_isStale)
                       Text(
                         'Last updated $_staleMinutes min ago',
-                        style:
-                            TextStyle(color: Colors.grey[600], fontSize: 11),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 11),
                       )
                     else if (widget.route.occupancyLastUpdated != null)
                       Text(
                         'Just updated',
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 11,
-                        ),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 11),
                       ),
                   ],
                 ),
@@ -568,10 +599,7 @@ class _RouteLoadingBadge extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 6,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 6),
         ],
       ),
       child: Row(

@@ -54,7 +54,17 @@ class AuthProvider extends ChangeNotifier {
       'password': 'admin123',
       'name': 'Admin Driver',
       'badge': 'BUS-ADM',
-      'assignedRoutes': ['r102', 'r103', 'r402', 'r403', 'r503', 'r603', 'r763', 'r783', 'r793'],
+      'assignedRoutes': [
+        'r102',
+        'r103',
+        'r402',
+        'r403',
+        'r503',
+        'r603',
+        'r763',
+        'r783',
+        'r793',
+      ],
     },
   ];
 
@@ -111,9 +121,7 @@ class AuthProvider extends ChangeNotifier {
       _driverName = found['name'] as String?;
       _driverBadge = found['badge'] as String?;
       final routes = found['assignedRoutes'];
-      _assignedRoutes = routes is List
-          ? routes.cast<String>()
-          : <String>[];
+      _assignedRoutes = routes is List ? routes.cast<String>() : <String>[];
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('driver_logged_in', true);

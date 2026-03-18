@@ -11,6 +11,11 @@ class AssetPaths {
   static const String fontsDir = 'assets/fonts/';
 
   // Images
+  static const String appLogo = '${imagesDir}logo.png';
+  static const String newLogo = '${imagesDir}NEW LOGO.png';
+  static const String startingStopIcon = '${imagesDir}STARTING STOP ICON.PNG';
+  static const String endingStopIcon = '${imagesDir}ENDING STOP ICON.PNG';
+  static const String busStopIcon = '${imagesDir}BUS STOPS ICON.PNG';
   static const String userImage = '${imagesDir}user (1).png';
 
   // Fonts

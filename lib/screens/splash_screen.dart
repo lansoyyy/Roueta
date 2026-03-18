@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../utils/assets.dart';
 import 'location_permission_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -87,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: const DecorationImage(
-                              image: AssetImage('assets/images/logo.jpg'),
+                              image: AssetImage(AssetPaths.appLogo),
                               fit: BoxFit.cover,
                             ),
                             border: Border.all(color: Colors.white, width: 3),

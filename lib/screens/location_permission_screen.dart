@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
+import '../utils/assets.dart';
 import 'auth/role_selection_screen.dart';
 
 class LocationPermissionScreen extends StatelessWidget {
@@ -94,7 +95,7 @@ class LocationPermissionScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: const DecorationImage(
-                    image: AssetImage('assets/images/logo.jpg'),
+                    image: AssetImage(AssetPaths.appLogo),
                     fit: BoxFit.cover,
                   ),
                   border: Border.all(color: Colors.white, width: 3),

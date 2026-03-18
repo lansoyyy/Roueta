@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../models/bus_route.dart';
 import '../providers/app_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import '../utils/map_marker_icons.dart';
 import '../widgets/app_drawer.dart';
 import 'auth/driver_login_screen.dart';
 import 'passenger/passenger_routes_screen.dart';
@@ -20,6 +22,7 @@ class MainMapScreen extends StatefulWidget {
 
 class _MainMapScreenState extends State<MainMapScreen> {
   GoogleMapController? _mapController;
+
   /// 0 = routes/bus tab, 1 = live map, 2 = profile
   int _selectedIndex = 1;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
@@ -117,9 +120,18 @@ class _MainMapScreenState extends State<MainMapScreen> {
   }
 }
 
+enum _StopMarkerKind { start, end, mid }
+
+class _MainMapStopEntry {
+  final BusStop stop;
+  final _StopMarkerKind kind;
+
+  const _MainMapStopEntry({required this.stop, required this.kind});
+}
+
 // ── Live map with active bus markers ─────────────────────────────────────────
 
-class _LiveMapView extends StatelessWidget {
+class _LiveMapView extends StatefulWidget {
   final GoogleMapController? mapController;
   final MapCreatedCallback onMapCreated;
   final AppProvider provider;
@@ -132,16 +144,158 @@ class _LiveMapView extends StatelessWidget {
     required this.settings,
   });
 
+  @override
+  State<_LiveMapView> createState() => _LiveMapViewState();
+}
+
+class _LiveMapViewState extends State<_LiveMapView> {
+  BitmapDescriptor? _startStopIcon;
+  BitmapDescriptor? _selectedStartStopIcon;
+  BitmapDescriptor? _endStopIcon;
+  BitmapDescriptor? _selectedEndStopIcon;
+  BitmapDescriptor? _midStopIcon;
+  BitmapDescriptor? _selectedMidStopIcon;
+  BitmapDescriptor? _busMarkerIcon;
+  String? _selectedStopId;
+  Set<Marker> _stopMarkers = {};
+
+  AppProvider get provider => widget.provider;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMarkerIcons();
+  }
+
+  @override
+  void didUpdateWidget(covariant _LiveMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.provider.routes != widget.provider.routes) {
+      _rebuildStopMarkers();
+    }
+  }
+
+  Future<void> _loadMarkerIcons() async {
+    final startStopIcon = await MapMarkerIcons.startStop();
+    final selectedStartStopIcon = await MapMarkerIcons.startStop(
+      selected: true,
+    );
+    final endStopIcon = await MapMarkerIcons.endStop();
+    final selectedEndStopIcon = await MapMarkerIcons.endStop(selected: true);
+    final midStopIcon = await MapMarkerIcons.busStop();
+    final selectedMidStopIcon = await MapMarkerIcons.busStop(selected: true);
+    final busMarkerIcon = await MapMarkerIcons.bus();
+    if (!mounted) return;
+    setState(() {
+      _startStopIcon = startStopIcon;
+      _selectedStartStopIcon = selectedStartStopIcon;
+      _endStopIcon = endStopIcon;
+      _selectedEndStopIcon = selectedEndStopIcon;
+      _midStopIcon = midStopIcon;
+      _selectedMidStopIcon = selectedMidStopIcon;
+      _busMarkerIcon = busMarkerIcon;
+    });
+    _rebuildStopMarkers();
+  }
+
+  _StopMarkerKind _mergeStopKind(
+    _StopMarkerKind existing,
+    _StopMarkerKind candidate,
+  ) {
+    if (existing == _StopMarkerKind.start || candidate == _StopMarkerKind.start) {
+      return _StopMarkerKind.start;
+    }
+    if (existing == _StopMarkerKind.end || candidate == _StopMarkerKind.end) {
+      return _StopMarkerKind.end;
+    }
+    return _StopMarkerKind.mid;
+  }
+
+  BitmapDescriptor _stopIconFor(_StopMarkerKind kind, {required bool selected}) {
+    switch (kind) {
+      case _StopMarkerKind.start:
+        return selected
+            ? (_selectedStartStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen))
+            : (_startStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
+      case _StopMarkerKind.end:
+        return selected
+            ? (_selectedEndStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+            : (_endStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed));
+      case _StopMarkerKind.mid:
+        return selected
+            ? (_selectedMidStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure))
+            : (_midStopIcon ??
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure));
+    }
+  }
+
+  void _rebuildStopMarkers() {
+    final uniqueStops = <String, _MainMapStopEntry>{};
+    for (final route in provider.routes) {
+      for (final variant in route.variants.values) {
+        for (int index = 0; index < variant.stops.length; index++) {
+          final stop = variant.stops[index];
+          final kind = index == 0
+              ? _StopMarkerKind.start
+              : index == variant.stops.length - 1
+              ? _StopMarkerKind.end
+              : _StopMarkerKind.mid;
+          final key = '${stop.name}_${stop.position.latitude.toStringAsFixed(5)}_${stop.position.longitude.toStringAsFixed(5)}';
+          final existing = uniqueStops[key];
+          if (existing == null) {
+            uniqueStops[key] = _MainMapStopEntry(stop: stop, kind: kind);
+            continue;
+          }
+          uniqueStops[key] = _MainMapStopEntry(
+            stop: existing.stop,
+            kind: _mergeStopKind(existing.kind, kind),
+          );
+        }
+      }
+    }
+
+    final markers = uniqueStops.values.map((entry) {
+      final isSelected = _selectedStopId == entry.stop.id;
+      return Marker(
+        markerId: MarkerId('main_stop_${entry.stop.id}'),
+        position: entry.stop.position,
+        icon: _stopIconFor(entry.kind, selected: isSelected),
+        anchor: const Offset(0.5, 1.0),
+        zIndexInt: isSelected ? 3 : 1,
+        infoWindow: InfoWindow(title: entry.stop.name),
+        onTap: () {
+          setState(() {
+            _selectedStopId = entry.stop.id;
+          });
+          _rebuildStopMarkers();
+        },
+      );
+    }).toSet();
+
+    if (!mounted) return;
+    setState(() {
+      _stopMarkers = markers;
+    });
+  }
+
   Set<Marker> _buildBusMarkers() {
     return provider.activeBusLocations.values.map((bus) {
       return Marker(
         markerId: MarkerId('bus_${bus.driverBadge}'),
         position: bus.position,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: _busMarkerIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         infoWindow: InfoWindow(
           title: '${bus.driverBadge} — ${bus.routeId.toUpperCase()}',
           snippet: bus.driverName,
         ),
+        anchor: const Offset(0.5, 1.0),
+        zIndexInt: 4,
       );
     }).toSet();
   }
@@ -157,18 +311,53 @@ class _LiveMapView extends StatelessWidget {
             target: provider.currentLatLng,
             zoom: 13.5,
           ),
-          onMapCreated: onMapCreated,
-          mapType: settings.googleMapType,
-          trafficEnabled: settings.showTraffic,
+          onMapCreated: widget.onMapCreated,
+          mapType: widget.settings.googleMapType,
+          trafficEnabled: widget.settings.showTraffic,
           myLocationEnabled: provider.locationPermissionGranted,
           myLocationButtonEnabled: false,
           zoomControlsEnabled: false,
           mapToolbarEnabled: false,
           buildingsEnabled: true,
           compassEnabled: false,
-          markers: buses,
+          markers: {..._stopMarkers, ...buses},
         ),
-        // Active bus count badge
+        Positioned(
+          top: 12,
+          left: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.place_rounded,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '${_stopMarkers.length} bus stops',
+                  style: TextStyle(
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         if (buses.isNotEmpty)
           Positioned(
             top: 12,
@@ -206,14 +395,13 @@ class _LiveMapView extends StatelessWidget {
               ),
             ),
           ),
-        // My location button
         if (provider.locationPermissionGranted)
           Positioned(
             bottom: 20,
             right: 12,
             child: GestureDetector(
               onTap: () {
-                mapController?.animateCamera(
+                widget.mapController?.animateCamera(
                   CameraUpdate.newLatLng(provider.currentLatLng),
                 );
               },
@@ -295,8 +483,7 @@ class _TopBar extends StatelessWidget {
                     child: TextField(
                       controller: searchController,
                       onChanged: onSearch,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
                         hintText: settings.tr('search_hint'),
                         hintStyle: const TextStyle(
@@ -452,10 +639,30 @@ class _NavItem extends StatelessWidget {
         width: 80,
         height: 62,
         child: Center(
-          child: Icon(
-            icon,
-            color: isSelected ? AppColors.primary : Colors.grey[400],
-            size: 26,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primary.withOpacity(0.14)
+                  : Colors.transparent,
+              shape: BoxShape.circle,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.25),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : const [],
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? AppColors.primary : Colors.grey[400],
+              size: 26,
+            ),
           ),
         ),
       ),

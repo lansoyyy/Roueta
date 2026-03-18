@@ -143,10 +143,7 @@ class FirestoreService {
     List<LatLng> points,
   ) async {
     try {
-      await _db
-          .collection('polyline_cache')
-          .doc('${routeId}_$variantId')
-          .set({
+      await _db.collection('polyline_cache').doc('${routeId}_$variantId').set({
         'routeId': routeId,
         'variantId': variantId,
         'points': points
@@ -161,8 +158,7 @@ class FirestoreService {
 
   Future<Map<String, dynamic>?> getDriverAccount(String username) async {
     try {
-      final doc =
-          await _db.collection('driver_accounts').doc(username).get();
+      final doc = await _db.collection('driver_accounts').doc(username).get();
       if (!doc.exists) return null;
       return doc.data();
     } catch (_) {
@@ -207,7 +203,17 @@ class FirestoreService {
           'password': 'admin123',
           'name': 'Admin Driver',
           'badge': 'BUS-ADM',
-          'assignedRoutes': ['r102', 'r103', 'r402', 'r403', 'r503', 'r603', 'r763', 'r783', 'r793'],
+          'assignedRoutes': [
+            'r102',
+            'r103',
+            'r402',
+            'r403',
+            'r503',
+            'r603',
+            'r763',
+            'r783',
+            'r793',
+          ],
         },
       ];
 

@@ -119,9 +119,7 @@ class _AssignedRoutesTab extends StatelessWidget {
     final assignedIds = auth.assignedRoutes;
     final routes = assignedIds.isEmpty
         ? provider.routes
-        : provider.routes
-            .where((r) => assignedIds.contains(r.id))
-            .toList();
+        : provider.routes.where((r) => assignedIds.contains(r.id)).toList();
 
     final isOnDuty = provider.activeDriverRoute != null;
 
@@ -243,9 +241,7 @@ class _AssignedRoutesTab extends StatelessWidget {
                       ),
                     ).then((_) {
                       if (context.mounted) {
-                        provider.stopDriverRoute(
-                          driverBadge: auth.driverBadge,
-                        );
+                        provider.stopDriverRoute(driverBadge: auth.driverBadge);
                       }
                     });
                   },

@@ -33,7 +33,10 @@ class DirectionsService {
     if (_memCache.containsKey(key)) return _memCache[key]!;
 
     // 2. Firestore cache
-    final cached = await FirestoreService().getCachedPolyline(routeId, variantId);
+    final cached = await FirestoreService().getCachedPolyline(
+      routeId,
+      variantId,
+    );
     if (cached != null && cached.length > 1) {
       _memCache[key] = cached;
       return cached;
@@ -88,9 +91,7 @@ class DirectionsService {
 
       if (result.points.isEmpty) return [];
 
-      return result.points
-          .map((p) => LatLng(p.latitude, p.longitude))
-          .toList();
+      return result.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
     } catch (_) {
       return [];
     }

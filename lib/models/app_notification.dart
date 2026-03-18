@@ -26,16 +26,15 @@ class AppNotification {
     'isRead': isRead,
   };
 
-  static AppNotification fromJson(Map<String, dynamic> json) =>
-      AppNotification(
-        id: json['id'] as String,
-        type: AppNotificationType.values.firstWhere(
-          (t) => t.name == json['type'],
-          orElse: () => AppNotificationType.routeStatus,
-        ),
-        title: json['title'] as String,
-        body: json['body'] as String,
-        time: DateTime.parse(json['time'] as String),
-        isRead: json['isRead'] as bool? ?? false,
-      );
+  static AppNotification fromJson(Map<String, dynamic> json) => AppNotification(
+    id: json['id'] as String,
+    type: AppNotificationType.values.firstWhere(
+      (t) => t.name == json['type'],
+      orElse: () => AppNotificationType.routeStatus,
+    ),
+    title: json['title'] as String,
+    body: json['body'] as String,
+    time: DateTime.parse(json['time'] as String),
+    isRead: json['isRead'] as bool? ?? false,
+  );
 }

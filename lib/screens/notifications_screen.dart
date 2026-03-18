@@ -28,10 +28,7 @@ class NotificationsScreen extends StatelessWidget {
             if (unread > 0) ...[
               const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -64,8 +61,7 @@ class NotificationsScreen extends StatelessWidget {
           : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: notifications.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, indent: 72),
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
               itemBuilder: (_, i) {
                 final notif = notifications[i];
                 return Dismissible(

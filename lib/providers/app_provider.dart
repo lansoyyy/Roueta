@@ -203,9 +203,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   List<BusLocationData> getBusLocationsForRoute(String routeId) =>
-      _activeBusLocations.values
-          .where((b) => b.routeId == routeId)
-          .toList();
+      _activeBusLocations.values.where((b) => b.routeId == routeId).toList();
 
   // ── Initialisation ────────────────────────────────────────────────────────
 
@@ -260,12 +258,14 @@ class AppProvider extends ChangeNotifier {
   /// Subscribe to Firestore for live bus positions and route status updates.
   void startFirestoreListeners() {
     _busLocationsSub?.cancel();
-    _busLocationsSub =
-        FirestoreService().streamActiveBusLocations().listen((snap) {
+    _busLocationsSub = FirestoreService().streamActiveBusLocations().listen((
+      snap,
+    ) {
       _activeBusLocations.clear();
       for (final doc in snap.docs) {
-        final bus =
-            BusLocationData.fromFirestore(doc.data() as Map<String, dynamic>);
+        final bus = BusLocationData.fromFirestore(
+          doc.data() as Map<String, dynamic>,
+        );
         if (bus.driverBadge.isNotEmpty) {
           _activeBusLocations[bus.driverBadge] = bus;
         }
@@ -274,8 +274,9 @@ class AppProvider extends ChangeNotifier {
     }, onError: (_) {});
 
     _routeStatusSub?.cancel();
-    _routeStatusSub =
-        FirestoreService().streamAllRouteStatuses().listen((snap) {
+    _routeStatusSub = FirestoreService().streamAllRouteStatuses().listen((
+      snap,
+    ) {
       bool changed = false;
       for (final doc in snap.docs) {
         final routeId = doc.id;
@@ -332,13 +333,15 @@ class AppProvider extends ChangeNotifier {
         : newStatus == RouteStatus.onStandby
         ? 'placed on standby. Service will resume shortly.'
         : 'currently unavailable.';
-    _addNotification(AppNotification(
-      id: '${route.id}_status_${DateTime.now().millisecondsSinceEpoch}',
-      type: AppNotificationType.routeStatus,
-      title: 'Route Status Changed',
-      body: '${route.name} is $label',
-      time: DateTime.now(),
-    ));
+    _addNotification(
+      AppNotification(
+        id: '${route.id}_status_${DateTime.now().millisecondsSinceEpoch}',
+        type: AppNotificationType.routeStatus,
+        title: 'Route Status Changed',
+        body: '${route.name} is $label',
+        time: DateTime.now(),
+      ),
+    );
     NotificationService().showRouteStatusNotification(
       routeName: route.name,
       status: label,
@@ -351,13 +354,15 @@ class AppProvider extends ChangeNotifier {
         : newOcc == OccupancyStatus.limitedSeats
         ? 'Limited Seats (~67%)'
         : 'Full Capacity (~95%). Expect standing passengers.';
-    _addNotification(AppNotification(
-      id: '${route.id}_occ_${DateTime.now().millisecondsSinceEpoch}',
-      type: AppNotificationType.occupancyUpdate,
-      title: 'Occupancy Update – ${route.code}',
-      body: '${route.name} is now reporting $label',
-      time: DateTime.now(),
-    ));
+    _addNotification(
+      AppNotification(
+        id: '${route.id}_occ_${DateTime.now().millisecondsSinceEpoch}',
+        type: AppNotificationType.occupancyUpdate,
+        title: 'Occupancy Update – ${route.code}',
+        body: '${route.name} is now reporting $label',
+        time: DateTime.now(),
+      ),
+    );
     NotificationService().showOccupancyNotification(
       routeName: route.name,
       occupancyLabel: label,
@@ -380,13 +385,16 @@ class AppProvider extends ChangeNotifier {
     required String stopName,
     required int minutesAway,
   }) {
-    _addNotification(AppNotification(
-      id: 'approach_${stopName}_${DateTime.now().millisecondsSinceEpoch}',
-      type: AppNotificationType.busApproaching,
-      title: 'Your bus is $minutesAway mins away!',
-      body: '$routeCode bus is $minutesAway mins away from $stopName bus stop.',
-      time: DateTime.now(),
-    ));
+    _addNotification(
+      AppNotification(
+        id: 'approach_${stopName}_${DateTime.now().millisecondsSinceEpoch}',
+        type: AppNotificationType.busApproaching,
+        title: 'Your bus is $minutesAway mins away!',
+        body:
+            '$routeCode bus is $minutesAway mins away from $stopName bus stop.',
+        time: DateTime.now(),
+      ),
+    );
   }
 
   void markNotificationRead(String id) {
@@ -480,8 +488,7 @@ class AppProvider extends ChangeNotifier {
       final variant = activeDriverVariant;
       final totalStops =
           variant?.stops.length ?? _activeDriverRoute!.stops.length;
-      final completedStops =
-          (_activeTripMaxStopIndex + 1).clamp(1, totalStops);
+      final completedStops = (_activeTripMaxStopIndex + 1).clamp(1, totalStops);
 
       _driverTripHistory.insert(
         0,
@@ -645,18 +652,16 @@ class AppProvider extends ChangeNotifier {
 
   void startLiveTracking({LocationAccuracy? accuracy}) {
     _locationSub?.cancel();
-    _locationSub = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: accuracy ?? LocationAccuracy.high,
-        distanceFilter: 10,
-      ),
-    ).listen(
-      (pos) {
-        _currentPosition = pos;
-        notifyListeners();
-      },
-      onError: (_) {},
-    );
+    _locationSub =
+        Geolocator.getPositionStream(
+          locationSettings: LocationSettings(
+            accuracy: accuracy ?? LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen((pos) {
+          _currentPosition = pos;
+          notifyListeners();
+        }, onError: (_) {});
   }
 
   void stopLiveTracking() {
@@ -691,9 +696,7 @@ class AppProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
         _notificationsKey,
-        jsonEncode(
-          _notifications.take(50).map((e) => e.toJson()).toList(),
-        ),
+        jsonEncode(_notifications.take(50).map((e) => e.toJson()).toList()),
       );
     } catch (_) {}
   }

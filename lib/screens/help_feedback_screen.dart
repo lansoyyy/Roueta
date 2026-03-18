@@ -335,7 +335,11 @@ class _FeedbackTabState extends State<_FeedbackTab> {
     } catch (_) {
       // Silently ignore Firestore errors — feedback still shows success UX.
     }
-    if (mounted) setState(() { _isSubmitting = false; _submitted = true; });
+    if (mounted)
+      setState(() {
+        _isSubmitting = false;
+        _submitted = true;
+      });
   }
 
   @override
