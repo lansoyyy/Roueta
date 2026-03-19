@@ -4,6 +4,8 @@ import '../core/constants/app_colors.dart';
 import '../providers/app_provider.dart';
 import '../providers/auth_provider.dart';
 import 'auth/role_selection_screen.dart';
+import 'driver/edit_profile_screen.dart';
+import 'driver/manage_assigned_routes_screen.dart';
 import 'driver/my_routes_screen.dart';
 import 'help_feedback_screen.dart';
 import 'recent_routes_screen.dart';
@@ -94,7 +96,7 @@ class _DriverProfileView extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      '${auth.driverBadge ?? ''}    Driver / Konduktor',
+                      '${auth.driverBadge ?? ''}    ${auth.driverRoleLabel}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -108,6 +110,26 @@ class _DriverProfileView extends StatelessWidget {
               const SizedBox(height: 40),
 
               // Menu items
+              _ProfileMenuItem(
+                icon: Icons.edit_outlined,
+                label: 'Edit Profile',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _ProfileMenuItem(
+                icon: Icons.manage_accounts_outlined,
+                label: 'Manage Assigned Routes',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ManageAssignedRoutesScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
               _ProfileMenuItem(
                 icon: Icons.route_outlined,
                 label: 'My Routes',
@@ -196,7 +218,9 @@ class _DriverProfileView extends StatelessWidget {
             onPressed: () async {
               Navigator.pop(ctx);
               // Stop active route
-              context.read<AppProvider>().stopDriverRoute();
+              context.read<AppProvider>().stopDriverRoute(
+                driverBadge: context.read<AuthProvider>().driverBadge,
+              );
               context.read<AppProvider>().setUserMode(UserMode.passenger);
               await context.read<AuthProvider>().logout();
               if (context.mounted) {

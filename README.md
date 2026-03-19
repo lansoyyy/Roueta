@@ -2,6 +2,11 @@
 
 A new Flutter project.
 
+## Firestore
+
+- Firestore rules: `firestore.rules`
+- Collection documentation: `docs/firestore_collections.md`
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

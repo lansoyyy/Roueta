@@ -140,6 +140,7 @@ class AppProvider extends ChangeNotifier {
   StreamSubscription<QuerySnapshot>? _busLocationsSub;
   StreamSubscription<QuerySnapshot>? _routeStatusSub;
   final Map<String, BusLocationData> _activeBusLocations = {};
+  final Map<String, RouteStatus> _remoteRouteStatuses = {};
 
   // ── Change detection for notifications ───────────────────────────────────
   final Map<String, RouteStatus> _prevRouteStatus = {};
@@ -270,6 +271,7 @@ class AppProvider extends ChangeNotifier {
           _activeBusLocations[bus.driverBadge] = bus;
         }
       }
+      _reconcileRouteStates();
       notifyListeners();
     }, onError: (_) {});
 
@@ -277,54 +279,97 @@ class AppProvider extends ChangeNotifier {
     _routeStatusSub = FirestoreService().streamAllRouteStatuses().listen((
       snap,
     ) {
-      bool changed = false;
+      _remoteRouteStatuses.clear();
       for (final doc in snap.docs) {
         final routeId = doc.id;
         final data = doc.data() as Map<String, dynamic>;
-        final idx = _routes.indexWhere((r) => r.id == routeId);
-        if (idx == -1) continue;
 
         final statusStr = data['status'] as String?;
-        RouteStatus? newStatus = statusStr == null
+        final newStatus = statusStr == null
             ? null
             : RouteStatus.values.firstWhere(
                 (s) => s.name == statusStr,
                 orElse: () => RouteStatus.onStandby,
               );
-
-        final occStr = data['occupancyStatus'] as String?;
-        OccupancyStatus? newOcc = occStr == null
-            ? null
-            : OccupancyStatus.values.firstWhere(
-                (s) => s.name == occStr,
-                orElse: () => OccupancyStatus.limitedSeats,
-              );
-
-        final occUpdated = data['occupancyLastUpdated'] as Timestamp?;
-
-        // Detect and broadcast changes
-        if (newStatus != null &&
-            _prevRouteStatus.containsKey(routeId) &&
-            _prevRouteStatus[routeId] != newStatus) {
-          _onRouteStatusChanged(_routes[idx], newStatus);
-        }
-        if (newOcc != null &&
-            _prevOccupancy.containsKey(routeId) &&
-            _prevOccupancy[routeId] != newOcc) {
-          _onOccupancyChanged(_routes[idx], newOcc);
-        }
-
         if (newStatus != null) {
-          _routes[idx].status = newStatus;
-          _prevRouteStatus[routeId] = newStatus;
+          _remoteRouteStatuses[routeId] = newStatus;
         }
-        _routes[idx].occupancyStatus = newOcc;
-        _routes[idx].occupancyLastUpdated = occUpdated?.toDate();
-        _prevOccupancy[routeId] = newOcc;
+      }
+      if (_reconcileRouteStates()) {
+        notifyListeners();
+      }
+    }, onError: (_) {});
+  }
+
+  bool _reconcileRouteStates() {
+    var changed = false;
+
+    for (final route in _routes) {
+      final nextStatus = _deriveRouteStatus(route.id);
+      final nextOccupancy = _deriveRouteOccupancy(route.id);
+      final nextOccupancyUpdated = _deriveRouteOccupancyUpdated(route.id);
+
+      if (_prevRouteStatus.containsKey(route.id) &&
+          _prevRouteStatus[route.id] != nextStatus) {
+        _onRouteStatusChanged(route, nextStatus);
+      }
+      if (_prevOccupancy.containsKey(route.id) &&
+          _prevOccupancy[route.id] != nextOccupancy &&
+          nextOccupancy != null) {
+        _onOccupancyChanged(route, nextOccupancy);
+      }
+
+      if (route.status != nextStatus ||
+          route.occupancyStatus != nextOccupancy ||
+          route.occupancyLastUpdated != nextOccupancyUpdated) {
         changed = true;
       }
-      if (changed) notifyListeners();
-    }, onError: (_) {});
+
+      route.status = nextStatus;
+      route.occupancyStatus = nextOccupancy;
+      route.occupancyLastUpdated = nextOccupancyUpdated;
+      _prevRouteStatus[route.id] = nextStatus;
+      _prevOccupancy[route.id] = nextOccupancy;
+    }
+
+    return changed;
+  }
+
+  RouteStatus _deriveRouteStatus(String routeId) {
+    final remoteStatus = _remoteRouteStatuses[routeId];
+    if (remoteStatus == RouteStatus.unavailable) {
+      return RouteStatus.unavailable;
+    }
+    if (getBusLocationsForRoute(routeId).isNotEmpty) {
+      return RouteStatus.operating;
+    }
+    return RouteStatus.onStandby;
+  }
+
+  OccupancyStatus? _deriveRouteOccupancy(String routeId) {
+    final buses = getBusLocationsForRoute(
+      routeId,
+    ).where((bus) => bus.occupancyStatus != null).toList(growable: false);
+
+    if (buses.isEmpty) return null;
+
+    return buses
+        .map((bus) => bus.occupancyStatus!)
+        .reduce(
+          (current, next) =>
+              _occupancyScore(next) > _occupancyScore(current) ? next : current,
+        );
+  }
+
+  DateTime? _deriveRouteOccupancyUpdated(String routeId) {
+    final timestamps = getBusLocationsForRoute(routeId)
+        .map((bus) => bus.occupancyLastUpdated)
+        .whereType<DateTime>()
+        .toList(growable: false);
+
+    if (timestamps.isEmpty) return null;
+    timestamps.sort();
+    return timestamps.last;
   }
 
   void _onRouteStatusChanged(BusRoute route, RouteStatus newStatus) {
@@ -465,14 +510,11 @@ class AppProvider extends ChangeNotifier {
     if (route != null) {
       route.selectVariant(variantId ?? route.defaultVariantId);
       route.status = RouteStatus.operating;
+      route.occupancyStatus = null;
+      route.occupancyLastUpdated = null;
       _activeTripStartedAt = DateTime.now();
       _activeTripMaxStopIndex = 0;
       _activeTripPeakOccupancy = null;
-      FirestoreService().updateRouteStatusAndOccupancy(
-        routeId: route.id,
-        status: RouteStatus.operating.name,
-        updatedBy: driverBadge ?? 'driver',
-      );
     }
     notifyListeners();
   }
@@ -515,11 +557,7 @@ class AppProvider extends ChangeNotifier {
     if (_activeDriverRoute != null) {
       _activeDriverRoute!.status = RouteStatus.onStandby;
       _activeDriverRoute!.occupancyStatus = null;
-      FirestoreService().updateRouteStatusAndOccupancy(
-        routeId: _activeDriverRoute!.id,
-        status: RouteStatus.onStandby.name,
-        updatedBy: driverBadge ?? 'driver',
-      );
+      _activeDriverRoute!.occupancyLastUpdated = null;
       if (driverBadge != null) {
         FirestoreService().clearBusLocation(driverBadge);
       }
@@ -549,11 +587,15 @@ class AppProvider extends ChangeNotifier {
     if (_activeDriverRoute != null) {
       _activeDriverRoute!.occupancyStatus = status;
       _activeDriverRoute!.occupancyLastUpdated = DateTime.now();
-      FirestoreService().updateRouteStatusAndOccupancy(
-        routeId: routeId ?? _activeDriverRoute!.id,
-        occupancyStatus: status.name,
-        updatedBy: driverBadge ?? 'driver',
-      );
+      if (driverBadge != null) {
+        FirestoreService().updateBusOccupancy(
+          driverBadge: driverBadge,
+          routeId: routeId ?? _activeDriverRoute!.id,
+          variantId:
+              _activeDriverVariantId ?? _activeDriverRoute!.defaultVariantId,
+          occupancyStatus: status.name,
+        );
+      }
     }
     notifyListeners();
   }

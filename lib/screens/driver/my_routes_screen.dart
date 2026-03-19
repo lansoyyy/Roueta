@@ -5,6 +5,7 @@ import '../../models/bus_route.dart';
 import '../../providers/app_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../active_bus_screen.dart';
+import 'manage_assigned_routes_screen.dart';
 
 class MyRoutesScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -117,9 +118,9 @@ class _AssignedRoutesTab extends StatelessWidget {
 
     // Show only routes assigned to this driver/conductor.
     final assignedIds = auth.assignedRoutes;
-    final routes = assignedIds.isEmpty
-        ? provider.routes
-        : provider.routes.where((r) => assignedIds.contains(r.id)).toList();
+    final routes = provider.routes
+        .where((r) => assignedIds.contains(r.id))
+        .toList(growable: false);
 
     final isOnDuty = provider.activeDriverRoute != null;
 
@@ -189,9 +190,41 @@ class _AssignedRoutesTab extends StatelessWidget {
         if (routes.isEmpty)
           Expanded(
             child: Center(
-              child: Text(
-                'No assigned routes',
-                style: TextStyle(color: Colors.grey[500], fontSize: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.route_outlined, size: 54, color: Colors.grey[300]),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No assigned routes',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Add route access before starting a live trip.',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                  ),
+                  const SizedBox(height: 14),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ManageAssignedRoutesScreen(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.edit_road_outlined, size: 18),
+                    label: const Text('Manage Routes'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                  ),
+                ],
               ),
             ),
           )

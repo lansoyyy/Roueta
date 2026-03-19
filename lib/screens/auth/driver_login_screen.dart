@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../providers/app_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../main_map_screen.dart';
+import 'driver_signup_screen.dart';
 
 class DriverLoginScreen extends StatefulWidget {
   const DriverLoginScreen({super.key});
@@ -42,9 +43,10 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
         (route) => false,
       );
     } else {
-      setState(
-        () => _errorMessage = 'Invalid username or password. Please try again.',
-      );
+      setState(() {
+        _errorMessage =
+            auth.lastError ?? 'Invalid username or password. Please try again.';
+      });
     }
   }
 
@@ -94,7 +96,7 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
                       decoration: _inputDecoration(
-                        hint: 'e.g. driver01',
+                        hint: 'e.g. staff.garcia',
                         prefixIcon: Icons.person_outline,
                       ),
                       validator: (v) => (v == null || v.trim().isEmpty)
@@ -208,10 +210,23 @@ class _DriverLoginScreenState extends State<DriverLoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-                    // ── Demo credentials hint ─────────────────────────
-                    _DemoCredentialsHint(),
+                    _AuthFooterCard(
+                      prompt: 'No staff account yet?',
+                      description:
+                          'Create a driver or konduktor account and assign the badge and routes you will use for live operations.',
+                      actionLabel: 'CREATE ACCOUNT',
+                      onTap: auth.isLoading
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const DriverSignupScreen(),
+                                ),
+                              );
+                            },
+                    ),
                   ],
                 ),
               ),
@@ -378,102 +393,69 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-// ── Demo credentials box ────────────────────────────────────────────────────
-class _DemoCredentialsHint extends StatefulWidget {
-  @override
-  State<_DemoCredentialsHint> createState() => _DemoCredentialsHintState();
-}
+class _AuthFooterCard extends StatelessWidget {
+  final String prompt;
+  final String description;
+  final String actionLabel;
+  final VoidCallback? onTap;
 
-class _DemoCredentialsHintState extends State<_DemoCredentialsHint> {
-  bool _expanded = false;
+  const _AuthFooterCard({
+    required this.prompt,
+    required this.description,
+    required this.actionLabel,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row — tap to expand
-          GestureDetector(
-            onTap: () => setState(() => _expanded = !_expanded),
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.grey[500], size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Demo Credentials',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: Colors.grey[400],
-                  ),
-                ],
-              ),
+          Text(
+            prompt,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[700],
+              fontWeight: FontWeight.w700,
             ),
           ),
-
-          // Expanded credentials list
-          if (_expanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: Column(
-                children: const [
-                  Divider(height: 1),
-                  SizedBox(height: 10),
-                  _CredRow('driver01', 'roueta123'),
-                  _CredRow('driver02', 'roueta123'),
-                  _CredRow('konduktor01', 'roueta123'),
-                  _CredRow('admin', 'admin123'),
-                ],
-              ),
+          const SizedBox(height: 6),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              height: 1.45,
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CredRow extends StatelessWidget {
-  final String username;
-  final String password;
-  const _CredRow(this.username, this.password);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(Icons.circle, size: 5, color: Colors.grey[400]),
-          const SizedBox(width: 8),
-          RichText(
-            text: TextSpan(
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              children: [
-                TextSpan(
-                  text: username,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: BorderSide(color: AppColors.primary.withOpacity(0.35)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const TextSpan(text: '  /  '),
-                TextSpan(text: password),
-              ],
+              ),
+              child: Text(
+                actionLabel,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
+              ),
             ),
           ),
         ],

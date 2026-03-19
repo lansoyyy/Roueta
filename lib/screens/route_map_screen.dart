@@ -119,13 +119,16 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       final stop = _stops[i];
       final BitmapDescriptor icon;
       if (i == 0) {
-        icon = _startIcon ??
+        icon =
+            _startIcon ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       } else if (i == _stops.length - 1) {
-        icon = _endIcon ??
+        icon =
+            _endIcon ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       } else {
-        icon = _midIcon ??
+        icon =
+            _midIcon ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       }
       markers.add(
@@ -154,7 +157,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         Marker(
           markerId: MarkerId('bus_${bus.driverBadge}'),
           position: bus.position,
-          icon: _busIcon ??
+          icon:
+              _busIcon ??
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
           anchor: const Offset(0.5, 1.0),
           infoWindow: InfoWindow(
@@ -256,8 +260,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
 
   // ── Occupancy helpers ─────────────────────────────────────────────────────
 
-  OccupancyStatus get _occupancy =>
-      widget.route.occupancyStatus ?? OccupancyStatus.seatAvailable;
+  OccupancyStatus? get _occupancy => widget.route.occupancyStatus;
 
   String get _occupancyLabel {
     switch (_occupancy) {
@@ -267,6 +270,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         return 'Limited Seats';
       case OccupancyStatus.fullCapacity:
         return 'Full Capacity';
+      case null:
+        return 'No live occupancy yet';
     }
   }
 
@@ -278,6 +283,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         return AppColors.accent;
       case OccupancyStatus.fullCapacity:
         return AppColors.statusUnavailable;
+      case null:
+        return AppColors.gray400;
     }
   }
 
