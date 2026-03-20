@@ -149,6 +149,7 @@ class _LiveMapView extends StatefulWidget {
 }
 
 class _LiveMapViewState extends State<_LiveMapView> {
+  static const double _compactMarkerZoomThreshold = 12.0;
   BitmapDescriptor? _startStopIcon;
   BitmapDescriptor? _selectedStartStopIcon;
   BitmapDescriptor? _endStopIcon;
@@ -156,10 +157,19 @@ class _LiveMapViewState extends State<_LiveMapView> {
   BitmapDescriptor? _midStopIcon;
   BitmapDescriptor? _selectedMidStopIcon;
   BitmapDescriptor? _busMarkerIcon;
+  BitmapDescriptor? _compactStartStopIcon;
+  BitmapDescriptor? _compactSelectedStartStopIcon;
+  BitmapDescriptor? _compactEndStopIcon;
+  BitmapDescriptor? _compactSelectedEndStopIcon;
+  BitmapDescriptor? _compactMidStopIcon;
+  BitmapDescriptor? _compactSelectedMidStopIcon;
+  BitmapDescriptor? _compactBusMarkerIcon;
   String? _selectedStopId;
   Set<Marker> _stopMarkers = {};
+  double _currentZoom = 13.5;
 
   AppProvider get provider => widget.provider;
+  bool get _useCompactMarkers => _currentZoom < _compactMarkerZoomThreshold;
 
   @override
   void initState() {
@@ -185,6 +195,22 @@ class _LiveMapViewState extends State<_LiveMapView> {
     final midStopIcon = await MapMarkerIcons.busStop();
     final selectedMidStopIcon = await MapMarkerIcons.busStop(selected: true);
     final busMarkerIcon = await MapMarkerIcons.bus();
+    final compactStartStopIcon = await MapMarkerIcons.startStop(compact: true);
+    final compactSelectedStartStopIcon = await MapMarkerIcons.startStop(
+      selected: true,
+      compact: true,
+    );
+    final compactEndStopIcon = await MapMarkerIcons.endStop(compact: true);
+    final compactSelectedEndStopIcon = await MapMarkerIcons.endStop(
+      selected: true,
+      compact: true,
+    );
+    final compactMidStopIcon = await MapMarkerIcons.busStop(compact: true);
+    final compactSelectedMidStopIcon = await MapMarkerIcons.busStop(
+      selected: true,
+      compact: true,
+    );
+    final compactBusMarkerIcon = await MapMarkerIcons.bus(compact: true);
     if (!mounted) return;
     setState(() {
       _startStopIcon = startStopIcon;
@@ -194,8 +220,24 @@ class _LiveMapViewState extends State<_LiveMapView> {
       _midStopIcon = midStopIcon;
       _selectedMidStopIcon = selectedMidStopIcon;
       _busMarkerIcon = busMarkerIcon;
+      _compactStartStopIcon = compactStartStopIcon;
+      _compactSelectedStartStopIcon = compactSelectedStartStopIcon;
+      _compactEndStopIcon = compactEndStopIcon;
+      _compactSelectedEndStopIcon = compactSelectedEndStopIcon;
+      _compactMidStopIcon = compactMidStopIcon;
+      _compactSelectedMidStopIcon = compactSelectedMidStopIcon;
+      _compactBusMarkerIcon = compactBusMarkerIcon;
     });
     _rebuildStopMarkers();
+  }
+
+  void _handleCameraMove(CameraPosition position) {
+    final shouldUseCompact = position.zoom < _compactMarkerZoomThreshold;
+    final wasCompact = _useCompactMarkers;
+    _currentZoom = position.zoom;
+    if (shouldUseCompact != wasCompact) {
+      _rebuildStopMarkers();
+    }
   }
 
   _StopMarkerKind _mergeStopKind(
@@ -215,21 +257,27 @@ class _LiveMapViewState extends State<_LiveMapView> {
     switch (kind) {
       case _StopMarkerKind.start:
         return selected
-            ? (_selectedStartStopIcon ??
+            ? ((_useCompactMarkers
+                      ? _compactSelectedStartStopIcon
+                      : _selectedStartStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen))
-            : (_startStopIcon ??
+            : ((_useCompactMarkers ? _compactStartStopIcon : _startStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
       case _StopMarkerKind.end:
         return selected
-            ? (_selectedEndStopIcon ??
+            ? ((_useCompactMarkers
+                      ? _compactSelectedEndStopIcon
+                      : _selectedEndStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_endStopIcon ??
+            : ((_useCompactMarkers ? _compactEndStopIcon : _endStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed));
       case _StopMarkerKind.mid:
         return selected
-            ? (_selectedMidStopIcon ??
+            ? ((_useCompactMarkers
+                      ? _compactSelectedMidStopIcon
+                      : _selectedMidStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure))
-            : (_midStopIcon ??
+            : ((_useCompactMarkers ? _compactMidStopIcon : _midStopIcon) ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure));
     }
   }
@@ -288,7 +336,7 @@ class _LiveMapViewState extends State<_LiveMapView> {
       return Marker(
         markerId: MarkerId('bus_${bus.driverBadge}'),
         position: bus.position,
-        icon: _busMarkerIcon ??
+        icon: (_useCompactMarkers ? _compactBusMarkerIcon : _busMarkerIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         infoWindow: InfoWindow(
           title: '${bus.driverBadge} — ${bus.routeId.toUpperCase()}',
@@ -312,6 +360,7 @@ class _LiveMapViewState extends State<_LiveMapView> {
             zoom: 13.5,
           ),
           onMapCreated: widget.onMapCreated,
+          onCameraMove: _handleCameraMove,
           mapType: widget.settings.googleMapType,
           trafficEnabled: widget.settings.showTraffic,
           myLocationEnabled: provider.locationPermissionGranted,

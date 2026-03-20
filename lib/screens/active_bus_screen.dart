@@ -27,6 +27,7 @@ class ActiveBusScreen extends StatefulWidget {
 }
 
 class _ActiveBusScreenState extends State<ActiveBusScreen> {
+  static const double _compactMarkerZoomThreshold = 12.0;
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
@@ -46,11 +47,19 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   BitmapDescriptor? _endSelectedIcon;
   BitmapDescriptor? _midIcon;
   BitmapDescriptor? _midSelectedIcon;
+  BitmapDescriptor? _compactStartIcon;
+  BitmapDescriptor? _compactStartSelectedIcon;
+  BitmapDescriptor? _compactEndIcon;
+  BitmapDescriptor? _compactEndSelectedIcon;
+  BitmapDescriptor? _compactMidIcon;
+  BitmapDescriptor? _compactMidSelectedIcon;
+  double _currentZoom = 13.5;
 
   RouteVariant get _variant =>
       widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
 
   List<BusStop> get _stops => _variant.stops;
+  bool get _useCompactMarkers => _currentZoom < _compactMarkerZoomThreshold;
 
   @override
   void initState() {
@@ -110,6 +119,21 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     final endSel = await MapMarkerIcons.endStop(selected: true);
     final mid = await MapMarkerIcons.busStop();
     final midSel = await MapMarkerIcons.busStop(selected: true);
+    final compactStart = await MapMarkerIcons.startStop(compact: true);
+    final compactStartSel = await MapMarkerIcons.startStop(
+      selected: true,
+      compact: true,
+    );
+    final compactEnd = await MapMarkerIcons.endStop(compact: true);
+    final compactEndSel = await MapMarkerIcons.endStop(
+      selected: true,
+      compact: true,
+    );
+    final compactMid = await MapMarkerIcons.busStop(compact: true);
+    final compactMidSel = await MapMarkerIcons.busStop(
+      selected: true,
+      compact: true,
+    );
     if (!mounted) return;
     _startIcon = start;
     _startSelectedIcon = startSel;
@@ -117,7 +141,22 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     _endSelectedIcon = endSel;
     _midIcon = mid;
     _midSelectedIcon = midSel;
+    _compactStartIcon = compactStart;
+    _compactStartSelectedIcon = compactStartSel;
+    _compactEndIcon = compactEnd;
+    _compactEndSelectedIcon = compactEndSel;
+    _compactMidIcon = compactMid;
+    _compactMidSelectedIcon = compactMidSel;
     _buildStopMarkers();
+  }
+
+  void _handleCameraMove(CameraPosition position) {
+    final shouldUseCompact = position.zoom < _compactMarkerZoomThreshold;
+    final wasCompact = _useCompactMarkers;
+    _currentZoom = position.zoom;
+    if (shouldUseCompact != wasCompact) {
+      _refreshStopMarkers(_currentStopIdx);
+    }
   }
 
   void _buildStopMarkers() {
@@ -129,16 +168,28 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
       final BitmapDescriptor icon;
       if (i == 0) {
         icon = isCurrent
-            ? (_startSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
+          ? ((_useCompactMarkers
+                ? _compactStartSelectedIcon
+                : _startSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactStartIcon : _startIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
       } else if (i == _stops.length - 1) {
         icon = isCurrent
-            ? (_endSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
+          ? ((_useCompactMarkers
+                ? _compactEndSelectedIcon
+                : _endSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactEndIcon : _endIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
       } else {
         icon = isCurrent
-            ? (_midSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_midIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
+          ? ((_useCompactMarkers
+                ? _compactMidSelectedIcon
+                : _midSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactMidIcon : _midIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
       }
       markers.add(
         Marker(
@@ -156,12 +207,30 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   // ── Road-following polyline ───────────────────────────────────────────────
 
   Future<void> _fetchRoadPolyline() async {
-    setState(() => _loadingPolyline = true);
-    final points = await DirectionsService().getPolylineForVariant(
+    final previewPoints = _stops.map((stop) => stop.position).toList(growable: false);
+    setState(() {
+      _loadingPolyline = true;
+      if (previewPoints.length >= 2) {
+        _polylines = {
+          Polyline(
+            polylineId: PolylineId('${widget.route.id}_${_variantId}_preview'),
+            points: previewPoints,
+            color: AppColors.primaryDark,
+            width: 5,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+          ),
+        };
+      }
+    });
+    final fetchedPoints = await DirectionsService().getPolylineForVariant(
       widget.route.id,
       _variantId,
       _stops,
     );
+    final points = fetchedPoints.length >= 2
+        ? fetchedPoints
+        : _stops.map((stop) => stop.position).toList(growable: false);
     if (!mounted) return;
     setState(() {
       _polylines = {
@@ -235,16 +304,28 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
       final BitmapDescriptor icon;
       if (i == 0) {
         icon = isCurrent
-            ? (_startSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_startIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
+          ? ((_useCompactMarkers
+                ? _compactStartSelectedIcon
+                : _startSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactStartIcon : _startIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen));
       } else if (i == _stops.length - 1) {
         icon = isCurrent
-            ? (_endSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_endIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
+          ? ((_useCompactMarkers
+                ? _compactEndSelectedIcon
+                : _endSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactEndIcon : _endIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange));
       } else {
         icon = isCurrent
-            ? (_midSelectedIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
-            : (_midIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
+          ? ((_useCompactMarkers
+                ? _compactMidSelectedIcon
+                : _midSelectedIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+          : ((_useCompactMarkers ? _compactMidIcon : _midIcon) ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan));
       }
       markers.add(
         Marker(
@@ -478,6 +559,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
                     zoom: 13.5,
                   ),
                   onMapCreated: (ctrl) => _mapController = ctrl,
+                  onCameraMove: _handleCameraMove,
                   mapType: settings.googleMapType,
                   trafficEnabled: settings.showTraffic,
                   markers: _markers,

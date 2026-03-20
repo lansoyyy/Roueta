@@ -11,36 +11,62 @@ class MapMarkerIcons {
   static final Map<String, Future<BitmapDescriptor>> _cache = {};
   static const int _markerWidth = 96;
   static const int _selectedMarkerWidth = 112;
+  static const int _compactMarkerWidth = 54;
+  static const int _compactSelectedMarkerWidth = 66;
+  static const int _busMarkerWidth = 56;
+  static const int _selectedBusMarkerWidth = 68;
+  static const int _compactBusMarkerWidth = 34;
+  static const int _compactSelectedBusMarkerWidth = 42;
 
-  static Future<BitmapDescriptor> busStop({bool selected = false}) {
+  static Future<BitmapDescriptor> busStop({
+    bool selected = false,
+    bool compact = false,
+  }) {
     return _load(
-      cacheKey: 'bus_stop_$selected',
+      cacheKey: 'bus_stop_${selected}_$compact',
       assetPath: AssetPaths.busStopIcon,
-      targetWidth: selected ? _selectedMarkerWidth : _markerWidth,
+      targetWidth: compact
+          ? (selected ? _compactSelectedMarkerWidth : _compactMarkerWidth)
+          : (selected ? _selectedMarkerWidth : _markerWidth),
     );
   }
 
-  static Future<BitmapDescriptor> bus({bool selected = false}) {
+  static Future<BitmapDescriptor> bus({
+    bool selected = false,
+    bool compact = false,
+  }) {
     return _load(
-      cacheKey: 'bus_$selected',
+      cacheKey: 'bus_${selected}_$compact',
       assetPath: AssetPaths.busStopIcon,
-      targetWidth: selected ? _selectedMarkerWidth : _markerWidth,
+      targetWidth: compact
+          ? (selected ? _compactSelectedBusMarkerWidth : _compactBusMarkerWidth)
+          : (selected ? _selectedBusMarkerWidth : _busMarkerWidth),
     );
   }
 
-  static Future<BitmapDescriptor> startStop({bool selected = false}) {
+  static Future<BitmapDescriptor> startStop({
+    bool selected = false,
+    bool compact = false,
+  }) {
     return _load(
-      cacheKey: 'start_stop_$selected',
+      cacheKey: 'start_stop_${selected}_$compact',
       assetPath: AssetPaths.startingStopIcon,
-      targetWidth: selected ? _selectedMarkerWidth : _markerWidth,
+      targetWidth: compact
+          ? (selected ? _compactSelectedMarkerWidth : _compactMarkerWidth)
+          : (selected ? _selectedMarkerWidth : _markerWidth),
     );
   }
 
-  static Future<BitmapDescriptor> endStop({bool selected = false}) {
+  static Future<BitmapDescriptor> endStop({
+    bool selected = false,
+    bool compact = false,
+  }) {
     return _load(
-      cacheKey: 'end_stop_$selected',
+      cacheKey: 'end_stop_${selected}_$compact',
       assetPath: AssetPaths.endingStopIcon,
-      targetWidth: selected ? _selectedMarkerWidth : _markerWidth,
+      targetWidth: compact
+          ? (selected ? _compactSelectedMarkerWidth : _compactMarkerWidth)
+          : (selected ? _selectedMarkerWidth : _markerWidth),
     );
   }
 

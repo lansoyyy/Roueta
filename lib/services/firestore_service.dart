@@ -134,11 +134,12 @@ class FirestoreService {
   Future<List<LatLng>?> getCachedPolyline(
     String routeId,
     String variantId,
+    {int cacheVersion = 1}
   ) async {
     try {
       final doc = await _db
           .collection('polyline_cache')
-          .doc('${routeId}_$variantId')
+          .doc('v${cacheVersion}_${routeId}_$variantId')
           .get();
       if (!doc.exists) return null;
       final data = doc.data();
@@ -161,11 +162,13 @@ class FirestoreService {
     String routeId,
     String variantId,
     List<LatLng> points,
+    {int cacheVersion = 1}
   ) async {
     try {
-      await _db.collection('polyline_cache').doc('${routeId}_$variantId').set({
+      await _db.collection('polyline_cache').doc('v${cacheVersion}_${routeId}_$variantId').set({
         'routeId': routeId,
         'variantId': variantId,
+        'cacheVersion': cacheVersion,
         'points': points
             .map((p) => {'lat': p.latitude, 'lng': p.longitude})
             .toList(),

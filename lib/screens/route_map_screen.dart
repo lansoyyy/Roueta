@@ -24,6 +24,7 @@ class RouteMapScreen extends StatefulWidget {
 }
 
 class _RouteMapScreenState extends State<RouteMapScreen> {
+  static const double _compactMarkerZoomThreshold = 12.0;
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
@@ -40,12 +41,18 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   BitmapDescriptor? _endIcon;
   BitmapDescriptor? _midIcon;
   BitmapDescriptor? _busIcon;
+  BitmapDescriptor? _compactStartIcon;
+  BitmapDescriptor? _compactEndIcon;
+  BitmapDescriptor? _compactMidIcon;
+  BitmapDescriptor? _compactBusIcon;
+  double _currentZoom = 13.5;
 
   late String _variantId;
 
   RouteVariant get _variant =>
       widget.route.variantById(_variantId) ?? widget.route.defaultVariant;
   List<BusStop> get _stops => _variant.stops;
+  bool get _useCompactMarkers => _currentZoom < _compactMarkerZoomThreshold;
 
   @override
   void initState() {
@@ -77,12 +84,30 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   // ── Polyline ──────────────────────────────────────────────────────────────
 
   Future<void> _fetchRoadPolyline() async {
-    setState(() => _loadingPolyline = true);
-    final points = await DirectionsService().getPolylineForVariant(
+    final previewPoints = _stops.map((stop) => stop.position).toList(growable: false);
+    setState(() {
+      _loadingPolyline = true;
+      if (previewPoints.length >= 2) {
+        _polylines = {
+          Polyline(
+            polylineId: PolylineId('${widget.route.id}_${_variantId}_preview'),
+            points: previewPoints,
+            color: const Color(0xFF3F51B5),
+            width: 5,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+          ),
+        };
+      }
+    });
+    final fetchedPoints = await DirectionsService().getPolylineForVariant(
       widget.route.id,
       _variantId,
       _stops,
     );
+    final points = fetchedPoints.length >= 2
+        ? fetchedPoints
+        : _stops.map((stop) => stop.position).toList(growable: false);
     if (!mounted) return;
     final polyline = Polyline(
       polylineId: PolylineId('${widget.route.id}_$_variantId'),
@@ -104,12 +129,29 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final end = await MapMarkerIcons.endStop();
     final mid = await MapMarkerIcons.busStop();
     final bus = await MapMarkerIcons.bus();
+    final compactStart = await MapMarkerIcons.startStop(compact: true);
+    final compactEnd = await MapMarkerIcons.endStop(compact: true);
+    final compactMid = await MapMarkerIcons.busStop(compact: true);
+    final compactBus = await MapMarkerIcons.bus(compact: true);
     if (!mounted) return;
     _startIcon = start;
     _endIcon = end;
     _midIcon = mid;
     _busIcon = bus;
+    _compactStartIcon = compactStart;
+    _compactEndIcon = compactEnd;
+    _compactMidIcon = compactMid;
+    _compactBusIcon = compactBus;
     _buildStopMarkers();
+  }
+
+  void _handleCameraMove(CameraPosition position) {
+    final shouldUseCompact = position.zoom < _compactMarkerZoomThreshold;
+    final wasCompact = _useCompactMarkers;
+    _currentZoom = position.zoom;
+    if (shouldUseCompact != wasCompact) {
+      _buildStopMarkers();
+    }
   }
 
   void _buildStopMarkers() {
@@ -120,15 +162,15 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       final BitmapDescriptor icon;
       if (i == 0) {
         icon =
-            _startIcon ??
+        (_useCompactMarkers ? _compactStartIcon : _startIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       } else if (i == _stops.length - 1) {
         icon =
-            _endIcon ??
+        (_useCompactMarkers ? _compactEndIcon : _endIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       } else {
         icon =
-            _midIcon ??
+        (_useCompactMarkers ? _compactMidIcon : _midIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       }
       markers.add(
@@ -158,7 +200,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
           markerId: MarkerId('bus_${bus.driverBadge}'),
           position: bus.position,
           icon:
-              _busIcon ??
+              (_useCompactMarkers ? _compactBusIcon : _busIcon) ??
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
           anchor: const Offset(0.5, 1.0),
           infoWindow: InfoWindow(
@@ -318,6 +360,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     zoom: 13.5,
                   ),
                   onMapCreated: (ctrl) => _mapController = ctrl,
+                  onCameraMove: _handleCameraMove,
                   mapType: settings.googleMapType,
                   trafficEnabled: settings.showTraffic,
                   markers: allMarkers,
