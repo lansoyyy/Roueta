@@ -158,8 +158,8 @@ class RoutesData {
       (name: 'Fusion GTH', lat: 7.025698892542236, lng: 125.50453761754194),
       (
         name: 'Pepsi Dumoy',
-        lat: 7.023329840151131,
-        lng: 125.50068871155098,
+        lat: 7.031020317008934,
+        lng: 125.51234608938083,
       ),
       (
         name: 'Bago Aplaya Crossing',
@@ -167,7 +167,7 @@ class RoutesData {
         lng: 125.52971547482498,
       ),
       (
-        name: 'Gulf Vire',
+        name: 'Gulf View',
         lat: 7.046178796107667,
         lng: 125.53453721069407,
       ),
@@ -186,31 +186,31 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.0582621410071225,
+        lng: 125.56973946675656,
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055776928386809,
+        lng: 125.5754344886606,
       ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
+      (
+        name: 'DGT',
+        lat: 7.0583486850000705,
+        lng: 125.58039900394762,
+      ),
       (
         name: 'Water District Matina',
-        lat: 7.061017302356448,
-        lng: 125.59001891248525,
+        lat: 7.061004064760845,
+        lng: 125.5900226852448,
       ),
       (
         name: 'NCCC Maa',
@@ -269,8 +269,8 @@ class RoutesData {
       ),
       (
         name: 'GE Torres (Sandawa near Panadero)',
-        lat: 7.0606257088610445,
-        lng: 125.60146662185548,
+        lat: 7.060628314955491,
+        lng: 125.60147769085005,
       ),
       (
         name: 'UM Matina',
@@ -333,7 +333,11 @@ class RoutesData {
         lng: 125.52252973548912,
       ),
       (name: 'IWHA', lat: 7.031834894392899, lng: 125.51331936427333),
-      (name: 'GTH', lat: 7.015865672234538, lng: 125.49780252470714),
+      (
+        name: 'GTH',
+        lat: 7.025864011282817,
+        lng: 125.50450361517382,
+      ),
       (
         name: 'Toril District Hall',
         lat: 7.01857530967576,
@@ -348,13 +352,13 @@ class RoutesData {
       ),
       (
         name: 'Fusion GTH',
-        lat: 7.015865672234538,
-        lng: 125.49780252470714,
+        lat: 7.025864011282817,
+        lng: 125.50450361517382,
       ),
       (
         name: 'Pepsi Dumoy',
-        lat: 7.023329840151131,
-        lng: 125.50068871155098,
+        lat: 7.031020317008934,
+        lng: 125.51234608938083,
       ),
       (
         name: 'Bago Aplaya Crossing',
@@ -363,8 +367,8 @@ class RoutesData {
       ),
       (
         name: 'Coastal Rd. Times Beach',
-        lat: 7.0452226579005295,
-        lng: 125.5915562689465,
+        lat: 7.045246390453188,
+        lng: 125.59163249336244,
       ),
       (
         name: 'Ecoland Terminal',
@@ -386,15 +390,11 @@ class RoutesData {
         lat: 7.01857530967576,
         lng: 125.49752945160083,
       ),
-      (
-        name: 'Fusion GTH',
-        lat: 7.015865672234538,
-        lng: 125.49780252470714,
-      ),
+      (name: 'Fusion GTH', lat: 7.025698892542236, lng: 125.50453761754194),
       (
         name: 'Pepsi Dumoy',
-        lat: 7.023329840151131,
-        lng: 125.50068871155098,
+        lat: 7.031020317008934,
+        lng: 125.51234608938083,
       ),
       (
         name: 'Bago Aplaya Crossing',
@@ -413,8 +413,8 @@ class RoutesData {
       ),
       (
         name: 'Felcris Centrale',
-        lat: 7.059943658064177,
-        lng: 125.60869034530712,
+        lat: 7.059924682953355,
+        lng: 125.60870525952208,
       ),
       (
         name: 'Davao City Police Office',
@@ -422,7 +422,7 @@ class RoutesData {
         lng: 125.61090525863925,
       ),
       (
-        name: 'CM Recto Ave. (LBC Recto Branch)',
+        name: 'CM Recto (LBC Recto Branch)',
         lat: 7.067109827662894,
         lng: 125.61072031272349,
       ),
@@ -494,8 +494,8 @@ class RoutesData {
       ),
       (
         name: 'Coastal Rd. Times Beach',
-        lat: 7.045539221894273,
-        lng: 125.59156133829786,
+        lat: 7.0452226579005295,
+        lng: 125.5915562689465,
       ),
       (
         name: 'Shell Bago Aplaya',
@@ -516,15 +516,11 @@ class RoutesData {
         lat: 7.01857530967576,
         lng: 125.49752945160083,
       ),
-      (
-        name: 'Fusion GTH',
-        lat: 7.015865672234538,
-        lng: 125.49780252470714,
-      ),
+      (name: 'Fusion GTH', lat: 7.025698892542236, lng: 125.50453761754194),
       (
         name: 'Pepsi Dumoy',
-        lat: 7.023329840151131,
-        lng: 125.50068871155098,
+        lat: 7.031020317008934,
+        lng: 125.51234608938083,
       ),
       (
         name: 'Bago Aplaya Crossing',
@@ -543,8 +539,8 @@ class RoutesData {
       ),
       (
         name: 'Felcris Centrale',
-        lat: 7.059943658064177,
-        lng: 125.60869034530712,
+        lat: 7.059924682953355,
+        lng: 125.60870525952208,
       ),
       (
         name: 'Davao City Police Office',
@@ -553,8 +549,8 @@ class RoutesData {
       ),
       (
         name: 'CM Recto Ave. (LBC Recto Branch)',
-        lat: 7.066659879284418,
-        lng: 125.6106318195824,
+        lat: 7.067109827662894,
+        lng: 125.61072031272349,
       ),
       (
         name: 'Davao Light (C. Bangoy St.)',
@@ -572,7 +568,7 @@ class RoutesData {
     destination: 'GE Torres',
     amOutStops: [
       (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
-      (name: 'Sto. Nino Mintal', lat: 7.0856891, lng: 125.5082963),
+      (name: 'Sto Nino Mintal', lat: 7.0856891, lng: 125.5082963),
       (name: 'Green Meadows', lat: 7.0802349, lng: 125.5131001),
       (
         name: 'Catalunan Pequeno near footbridge',
@@ -585,27 +581,27 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.058252,
+        lng: 125.569758,
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055776928386809,
+        lng: 125.5754344886606,
       ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
+      (
+        name: 'DGT',
+        lat: 7.058353611624336,
+        lng: 125.58039303376741,
+      ),
       (
         name: 'Water District Matina',
         lat: 7.061017302356448,
@@ -638,8 +634,8 @@ class RoutesData {
       (name: 'LTO Ecoland', lat: 7.0509340, lng: 125.5878979),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055890402091169,
+        lng: 125.57563883607156,
       ),
       (
         name: 'Matina Crossing near DCPO Police Station 3 - Talomo',
@@ -677,7 +673,7 @@ class RoutesData {
         lng: 125.51271444213823,
       ),
       (name: 'Vista Mall', lat: 7.08642393577315, lng: 125.50780692265114),
-      (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
+      (name: 'Mintal Palengke', lat: 7.091678, lng: 125.502941),
     ],
     pmOutStops: [
       (
@@ -746,11 +742,11 @@ class RoutesData {
         lng: 125.51271444213823,
       ),
       (name: 'Vista Mall', lat: 7.08642393577315, lng: 125.50780692265114),
-      (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
+      (name: 'Mintal Palengke', lat: 7.091678, lng: 125.502941),
     ],
     pmInStops: [
       (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
-      (name: 'Sto. Nino Mintal', lat: 7.0856891, lng: 125.5082963),
+      (name: 'Sto Nino Mintal', lat: 7.0856891, lng: 125.5082963),
       (name: 'Green Meadows', lat: 7.0802349, lng: 125.5131001),
       (
         name: 'Catalunan Pequeno near footbridge',
@@ -763,33 +759,21 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.058252,
+        lng: 125.569758,
       ),
-      (
-        name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
-      ),
-      (name: 'SM Ecoland', lat: 7.0509340, lng: 125.5878979),
-      (name: 'PWC Quimpo', lat: 7.0528969, lng: 125.5945749),
-      (
-        name: 'Ecoland Terminal',
-        lat: 7.055079609013119,
-        lng: 125.59968205747072,
-      ),
+      (name: 'Kawayan Drive', lat: 7.055756, lng: 125.575448),
+      (name: 'SM Ecoland', lat: 7.050676, lng: 125.588039),
+      (name: 'PWC Quimpo', lat: 7.052837, lng: 125.594654),
+      (name: 'Ecoland Terminal', lat: 7.055034, lng: 125.599672),
     ],
   );
 
@@ -801,7 +785,7 @@ class RoutesData {
     destination: 'Roxas',
     amOutStops: [
       (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
-      (name: 'Sto. Nino Mintal', lat: 7.0856891, lng: 125.5082963),
+      (name: 'Sto Nino Mintal', lat: 7.0856891, lng: 125.5082963),
       (name: 'Green Meadows', lat: 7.0802349, lng: 125.5131001),
       (
         name: 'Catalunan Pequeno near footbridge',
@@ -818,29 +802,25 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.0582621410071225,
+        lng: 125.56973946675656,
+      ),
+      (name: 'Kawayan Drive', lat: 7.055756, lng: 125.575448),
+      (
+        name: 'DGT',
+        lat: 7.058353611624336,
+        lng: 125.58039303376741,
       ),
       (
-        name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
-      ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
-      (
-        name: 'Water District Matina',
+        name: 'Water Dist. Matina',
         lat: 7.061017302356448,
         lng: 125.59001891248525,
       ),
@@ -932,7 +912,7 @@ class RoutesData {
         lng: 125.51271444213823,
       ),
       (name: 'Vista Mall', lat: 7.08642393577315, lng: 125.50780692265114),
-      (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
+      (name: 'Mintal Palengke', lat: 7.091678, lng: 125.502941),
     ],
     pmOutStops: [
       (
@@ -1001,11 +981,11 @@ class RoutesData {
         lng: 125.51271444213823,
       ),
       (name: 'Vista Mall', lat: 7.08642393577315, lng: 125.50780692265114),
-      (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
+      (name: 'Mintal Palengke', lat: 7.091678, lng: 125.502941),
     ],
     pmInStops: [
       (name: 'Mintal Palengke', lat: 7.0916813, lng: 125.5029771),
-      (name: 'Sto. Nino Mintal', lat: 7.0856891, lng: 125.5082963),
+      (name: 'Sto Nino Mintal', lat: 7.0856891, lng: 125.5082963),
       (name: 'Green Meadows', lat: 7.0802349, lng: 125.5131001),
       (
         name: 'Catalunan Pequeno near footbridge',
@@ -1022,29 +1002,25 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.058252,
+        lng: 125.569758,
+      ),
+      (name: 'Kawayan Drive', lat: 7.055756, lng: 125.575448),
+      (
+        name: 'DGT',
+        lat: 7.058353611624336,
+        lng: 125.58039303376741,
       ),
       (
-        name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
-      ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
-      (
-        name: 'Water District Matina',
+        name: 'Water Dist. Matina',
         lat: 7.061017302356448,
         lng: 125.59001891248525,
       ),
@@ -1088,31 +1064,31 @@ class RoutesData {
         lat: 7.060864554604337,
         lng: 125.55678299327847,
       ),
-      (
-        name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
-      ),
+      (name: 'SPED Bangkal', lat: 7.061315, lng: 125.559738),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.0582621410071225,
+        lng: 125.56973946675656,
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055776928386809,
+        lng: 125.5754344886606,
       ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
       (
-        name: 'Water District Matina',
-        lat: 7.061017302356448,
-        lng: 125.59001891248525,
+        name: 'DGT',
+        lat: 7.0583486850000705,
+        lng: 125.58039900394762,
+      ),
+      (
+        name: 'Water Dist. Matina',
+        lat: 7.061004064760845,
+        lng: 125.5900226852448,
       ),
       (
         name: 'NCCC Maa',
@@ -1136,8 +1112,8 @@ class RoutesData {
       ),
       (
         name: 'CM Recto Ave. (LBC Recto Branch)',
-        lat: 7.066659879284418,
-        lng: 125.6106318195824,
+        lat: 7.067109827662894,
+        lng: 125.61072031272349,
       ),
       (
         name: 'Davao Light (C. Bangoy St.)',
@@ -1173,8 +1149,8 @@ class RoutesData {
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055776928386809,
+        lng: 125.5754344886606,
       ),
       (
         name: 'Matina Crossing near DCPO Police Station 3 - Talomo',
@@ -1188,8 +1164,8 @@ class RoutesData {
       ),
       (
         name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
+        lat: 7.061423234933985,
+        lng: 125.55971753566475,
       ),
       (
         name: 'Shell Bangkal',
@@ -1230,8 +1206,8 @@ class RoutesData {
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055890402091169,
+        lng: 125.57563883607156,
       ),
       (
         name: 'Matina Crossing near DCPO Police Station 3 - Talomo',
@@ -1245,8 +1221,8 @@ class RoutesData {
       ),
       (
         name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
+        lat: 7.061423234933985,
+        lng: 125.55971753566475,
       ),
       (
         name: 'Shell Bangkal',
@@ -1272,29 +1248,33 @@ class RoutesData {
       ),
       (
         name: 'SPED Bangkal',
-        lat: 7.061362932543133,
-        lng: 125.55970237986399,
+        lat: 7.061305555555556,
+        lng: 125.55975,
       ),
       (
         name: 'Tahimik Ave. Matina',
-        lat: 7.0611689325111975,
-        lng: 125.56320740006322,
+        lat: 7.060860106129967,
+        lng: 125.56368857654391,
       ),
       (
         name: 'Matina Crossing near Central Convenience Store',
-        lat: 7.058266967208352,
-        lng: 125.569762391052,
+        lat: 7.0582621410071225,
+        lng: 125.56973946675656,
       ),
       (
         name: 'Kawayan Drive',
-        lat: 7.055788612737783,
-        lng: 125.57543851106243,
+        lat: 7.055776928386809,
+        lng: 125.5754344886606,
       ),
-      (name: 'DGT', lat: 7.058353611624336, lng: 125.58039303376741),
       (
-        name: 'Water District Matina',
-        lat: 7.061017302356448,
-        lng: 125.59001891248525,
+        name: 'DGT',
+        lat: 7.058353611624336,
+        lng: 125.58039303376741,
+      ),
+      (
+        name: 'Water Dist. Matina',
+        lat: 7.061004064760845,
+        lng: 125.5900226852448,
       ),
       (
         name: 'NCCC Maa',
@@ -1337,41 +1317,112 @@ class RoutesData {
     destination: 'Roxas',
     amOutStops: [
       (name: 'Citymall Northtown', lat: 7.14211, lng: 125.60020),
-      (name: 'Jollibee Cabantian', lat: 7.13328, lng: 125.64330),
+      (
+        name: 'Jollibee Cabantian',
+        lat: 7.127485580429315,
+        lng: 125.61997126182304,
+      ),
       (name: 'Buhangin NHA', lat: 7.11549, lng: 125.62413),
-      (name: 'Buhangin Gym', lat: 7.10960, lng: 125.61564),
-      (name: 'Ladislawa', lat: 7.09849, lng: 125.61480),
+      (
+        name: 'Buhangin Gym',
+        lat: 7.115436096443829,
+        lng: 125.62419332955305,
+      ),
+      (
+        name: 'Ladislawa',
+        lat: 7.0991250748399946,
+        lng: 125.61475564421224,
+      ),
       (name: 'Abreeza Mall', lat: 7.09227, lng: 125.61062),
-      (name: 'NCCC Mall VP', lat: 7.08605, lng: 125.61093),
-      (name: 'Red Cross Roxas', lat: 7.07273, lng: 125.61180),
+      (
+        name: 'NCCC Mall VP',
+        lat: 7.085066134760534,
+        lng: 125.61153590506359,
+      ),
+      (
+        name: 'Red Cross Roxas',
+        lat: 7.072527777777778,
+        lng: 125.61155555555556,
+      ),
     ],
     amInStops: [
       (name: 'Citymall Northtown', lat: 7.14211, lng: 125.60020),
-      (name: 'Jollibee Cabantian', lat: 7.13329, lng: 125.64329),
-      (name: 'Buhangin NHA', lat: 7.11532, lng: 125.62426),
-      (name: 'Buhangin Gym', lat: 7.10941, lng: 125.61563),
-      (name: 'Ladislawa', lat: 7.09850, lng: 125.61496),
+      (
+        name: 'Jollibee Cabantian',
+        lat: 7.127706877855715,
+        lng: 125.61990918017105,
+      ),
+      (
+        name: 'Holy Child Cabantian',
+        lat: 7.119214642355623,
+        lng: 125.62093799262627,
+      ),
+      (
+        name: 'Ladislawa',
+        lat: 7.098968235764844,
+        lng: 125.61487946716696,
+      ),
+      (
+        name: 'JP Laurel Flyover',
+        lat: 7.094919190434544,
+        lng: 125.61500215550664,
+      ),
       (name: 'Abreeza Mall', lat: 7.09144, lng: 125.61020),
-      (name: 'NCCC Mall VP', lat: 7.08651, lng: 125.61082),
+      (
+        name: 'NCCC Mall VP',
+        lat: 7.0858498613307495,
+        lng: 125.61123357754279,
+      ),
+      (
+        name: 'Davao Mental Hospital',
+        lat: 7.0760341991753775,
+        lng: 125.61325843489129,
+      ),
       (name: 'Red Cross Roxas', lat: 7.07254, lng: 125.61155),
     ],
     pmOutStops: [
       (name: 'Red Cross Roxas', lat: 7.07254, lng: 125.61155),
-      (name: 'Davao Mental Hospital', lat: 7.07577, lng: 125.61336),
-      (name: 'NCCC Mall VP', lat: 7.08651, lng: 125.61082),
+      (
+        name: 'Davao Mental Hospital',
+        lat: 7.0760341991753775,
+        lng: 125.61325843489129,
+      ),
+      (
+        name: 'NCCC Mall VP',
+        lat: 7.0858498613307495,
+        lng: 125.61123357754279,
+      ),
       (name: 'Abreeza Mall', lat: 7.09144, lng: 125.61020),
-      (name: 'JP Laurel Flyover', lat: 7.09477, lng: 125.61502),
-      (name: 'Ladislawa', lat: 7.09850, lng: 125.61496),
+      (
+        name: 'JP Laurel Flyover',
+        lat: 7.094919190434544,
+        lng: 125.61500215550664,
+      ),
+      (
+        name: 'Ladislawa',
+        lat: 7.098968235764844,
+        lng: 125.61487946716696,
+      ),
       (name: 'Citygate Buhangin', lat: 7.10959, lng: 125.61297),
     ],
     pmInStops: [
-      (name: 'Red Cross Roxas', lat: 7.07273, lng: 125.61180),
-      (name: 'Davao Mental Hospital', lat: 7.07586, lng: 125.61307),
-      (name: 'NCCC Mall VP', lat: 7.08651, lng: 125.61082),
-      (name: 'Abreeza Mall', lat: 7.09144, lng: 125.61020),
-      (name: 'JP Laurel Flyover', lat: 7.09479, lng: 125.61450),
-      (name: 'Ladislawa', lat: 7.09849, lng: 125.61480),
-      (name: 'Citygate Buhangin', lat: 7.10954, lng: 125.61279),
+      (
+        name: 'Red Cross Roxas',
+        lat: 7.072527777777778,
+        lng: 125.61155555555556,
+      ),
+      (
+        name: 'NCCC Mall VP',
+        lat: 7.085066134760534,
+        lng: 125.61153590506359,
+      ),
+      (name: 'Abreeza Mall', lat: 7.09227, lng: 125.61062),
+      (
+        name: 'Ladislawa',
+        lat: 7.0991250748399946,
+        lng: 125.61475564421224,
+      ),
+      (name: 'Citygate Buhangin', lat: 7.10959, lng: 125.61297),
     ],
   );
 
@@ -1403,7 +1454,7 @@ class RoutesData {
         lng: 125.64292420752054,
       ),
       (
-        name: 'McDo Pag-IBIG',
+        name: 'MCDO Pagibig',
         lat: 7.126136844157472,
         lng: 125.63398832776832,
       ),
@@ -1490,6 +1541,11 @@ class RoutesData {
         lng: 125.64471170882811,
       ),
       (
+        name: 'Landmark',
+        lat: 7.138371248580803,
+        lng: 125.64891657559151,
+      ),
+      (
         name: 'Panacan Ave.',
         lat: 7.143269083693995,
         lng: 125.65403708357618,
@@ -1557,7 +1613,12 @@ class RoutesData {
         lng: 125.64471170882811,
       ),
       (
-        name: 'Panacan Ave.',
+        name: 'Landmark',
+        lat: 7.138371248580803,
+        lng: 125.64891657559151,
+      ),
+      (
+        name: 'Panacan Ave',
         lat: 7.143269083693995,
         lng: 125.65403708357618,
       ),
@@ -1579,7 +1640,7 @@ class RoutesData {
         lng: 125.65936831386026,
       ),
       (
-        name: 'Panacan Bypass Rd.',
+        name: 'Panacan Bypass Rd',
         lat: 7.143770140614087,
         lng: 125.65441917006825,
       ),
@@ -1594,7 +1655,7 @@ class RoutesData {
         lng: 125.64292420752054,
       ),
       (
-        name: 'McDo Pag-IBIG',
+        name: 'McDo Pag ibig',
         lat: 7.126136844157472,
         lng: 125.63398832776832,
       ),
@@ -1639,26 +1700,26 @@ class RoutesData {
     destination: 'Roxas',
     amOutStops: [
       (name: 'Panacan Depot', lat: 7.148351, lng: 125.659342),
-      (name: 'Panacan Bypass Rd.', lat: 7.143647, lng: 125.654327),
+      (name: 'Panacan Bypass Rd.', lat: 7.122030, lng: 125.632913),
       (name: 'LPU Davao', lat: 7.136741, lng: 125.647065),
       (name: 'Sta. Lucia Mall', lat: 7.132763, lng: 125.642831),
-      (name: 'McDo Pag-IBIG', lat: 7.125792, lng: 125.633892),
+      (name: 'Mcdo Pagibig', lat: 7.125792, lng: 125.633892),
       (name: 'Punad Bypass', lat: 7.122047, lng: 125.632929),
-      (name: 'Angliongto Arcade', lat: 7.108694, lng: 125.632363),
+      (name: 'Angliongto Arcade', lat: 7.108705, lng: 125.632331),
       (name: 'Phil. Nikkei Jin Kai', lat: 7.102758, lng: 125.632766),
       (name: 'SM Lanang', lat: 7.100564, lng: 125.630351),
       (name: 'Carmelite Lanang', lat: 7.099727, lng: 125.627344),
-      (name: 'Merco Cabaguio', lat: 7.096424, lng: 125.620624),
+      (name: 'Merco Cabaguio', lat: 7.096429, lng: 125.620606),
       (name: 'Assumption College', lat: 7.086990, lng: 125.623866),
       (name: 'Agdao Flyover', lat: 7.080859, lng: 125.624626),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076942, lng: 125.619280),
       (name: 'Red Cross Roxas', lat: 7.072698, lng: 125.611480),
     ],
     amInStops: [
       (name: 'Red Cross Roxas', lat: 7.072698, lng: 125.611480),
       (name: 'Davao Mental Hospital', lat: 7.076234, lng: 125.613292),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
-      (name: 'Agdao Flyover', lat: 7.080859, lng: 125.624626),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076877, lng: 125.619345),
+      (name: 'Agdao Flyover', lat: 7.080869, lng: 125.624780),
       (name: 'Holy Cross R. Castillo', lat: 7.087379, lng: 125.629481),
       (name: 'Jerome R. Castillo', lat: 7.096886, lng: 125.638286),
       (name: 'Nova Tierra', lat: 7.110840, lng: 125.649694),
@@ -1666,7 +1727,7 @@ class RoutesData {
       (name: 'Old Airport', lat: 7.117241, lng: 125.654859),
       (name: 'Shell Dona Salud', lat: 7.121625, lng: 125.658373),
       (name: 'Philippine Ports Authority', lat: 7.127041, lng: 125.661821),
-      (name: 'Sasa Palengke', lat: 7.134595, lng: 125.661601),
+      (name: 'Sasa Palengke', lat: 7.134615, lng: 125.661623),
       (
         name: 'DavSam Ferry Terminal',
         lat: 7.14610995558344,
@@ -1678,7 +1739,7 @@ class RoutesData {
       (name: 'Red Cross Roxas', lat: 7.072698, lng: 125.611480),
       (name: 'Davao Mental Hospital', lat: 7.076234, lng: 125.613292),
       (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
-      (name: 'Agdao Flyover', lat: 7.080859, lng: 125.624626),
+      (name: 'Agdao Flyover', lat: 7.080869, lng: 125.624780),
       (name: 'Holy Cross R. Castillo', lat: 7.087379, lng: 125.629481),
       (name: 'Jerome R. Castillo', lat: 7.096886, lng: 125.638286),
       (name: 'Nova Tierra', lat: 7.110840, lng: 125.649694),
@@ -1686,7 +1747,7 @@ class RoutesData {
       (name: 'Old Airport', lat: 7.117241, lng: 125.654859),
       (name: 'Shell Dona Salud', lat: 7.121625, lng: 125.658373),
       (name: 'Philippine Ports Authority', lat: 7.127041, lng: 125.661821),
-      (name: 'Sasa Palengke', lat: 7.134595, lng: 125.661601),
+      (name: 'Sasa Palengke', lat: 7.134615, lng: 125.661623),
       (
         name: 'DavSam Ferry Terminal',
         lat: 7.14610995558344,
@@ -1696,19 +1757,19 @@ class RoutesData {
     ],
     pmInStops: [
       (name: 'Panacan Depot', lat: 7.148351, lng: 125.659342),
-      (name: 'Panacan Bypass Rd.', lat: 7.143647, lng: 125.654327),
+      (name: 'Panacan Bypass Rd', lat: 7.143647, lng: 125.654327),
       (name: 'LPU Davao', lat: 7.136741, lng: 125.647065),
       (name: 'Sta. Lucia Mall', lat: 7.132763, lng: 125.642831),
-      (name: 'McDo Pag-IBIG', lat: 7.125792, lng: 125.633892),
-      (name: 'Punad Bypass', lat: 7.122047, lng: 125.632929),
-      (name: 'Angliongto Arcade', lat: 7.108694, lng: 125.632363),
+      (name: 'Mcdo Pagibig', lat: 7.125792, lng: 125.633892),
+      (name: 'Punad Bypass', lat: 7.122030, lng: 125.632913),
+      (name: 'Angliongto Arcade', lat: 7.108705, lng: 125.632331),
       (name: 'Phil. Nikkei Jin Kai', lat: 7.102758, lng: 125.632766),
       (name: 'SM Lanang', lat: 7.100564, lng: 125.630351),
       (name: 'Carmelite Lanang', lat: 7.099727, lng: 125.627344),
-      (name: 'Merco Cabaguio', lat: 7.096424, lng: 125.620624),
+      (name: 'Merco Cabaguio', lat: 7.096429, lng: 125.620606),
       (name: 'Assumption College', lat: 7.086990, lng: 125.623866),
       (name: 'Agdao Flyover', lat: 7.080859, lng: 125.624626),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076942, lng: 125.619280),
       (name: 'Red Cross Roxas', lat: 7.072698, lng: 125.611480),
     ],
   );
@@ -1725,7 +1786,7 @@ class RoutesData {
         lat: 7.143951693564209,
         lng: 125.66121195588696,
       ),
-      (name: 'Sasa Palengke', lat: 7.134595, lng: 125.661601),
+      (name: 'Sasa Palengke', lat: 7.135255, lng: 125.661507),
       (
         name: 'Sulpicio Rd. Sasa',
         lat: 7.127609335602626,
@@ -1766,7 +1827,7 @@ class RoutesData {
         lat: 7.080935317784382,
         lng: 125.62460530324813,
       ),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076969, lng: 125.619016),
       (
         name: 'Red Cross Roxas',
         lat: 7.072610830052556,
@@ -1784,7 +1845,7 @@ class RoutesData {
         lat: 7.076141316149247,
         lng: 125.61328735437344,
       ),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076969, lng: 125.619016),
       (
         name: 'Agdao Flyover',
         lat: 7.080935317784382,
@@ -1862,7 +1923,7 @@ class RoutesData {
         lat: 7.076141316149247,
         lng: 125.61328735437344,
       ),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076969, lng: 125.619016),
       (
         name: 'Agdao Flyover',
         lat: 7.080935317784382,
@@ -1935,7 +1996,7 @@ class RoutesData {
         lat: 7.143951693564209,
         lng: 125.66121195588696,
       ),
-      (name: 'Sasa Palengke', lat: 7.134595, lng: 125.661601),
+      (name: 'Sasa Palengke', lat: 7.135255, lng: 125.661507),
       (
         name: 'Sulpicio Rd. Sasa',
         lat: 7.127609335602626,
@@ -1976,7 +2037,7 @@ class RoutesData {
         lat: 7.080935317784382,
         lng: 125.62460530324813,
       ),
-      (name: 'Sta. Ana Sobrecarey', lat: 7.076899, lng: 125.619284),
+      (name: 'Sta. Ana Sobrecarey', lat: 7.076969, lng: 125.619016),
       (
         name: 'Red Cross Roxas',
         lat: 7.072610830052556,
