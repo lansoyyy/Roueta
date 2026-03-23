@@ -84,41 +84,28 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   // ── Polyline ──────────────────────────────────────────────────────────────
 
   Future<void> _fetchRoadPolyline() async {
-    final previewPoints = _stops.map((stop) => stop.position).toList(growable: false);
     setState(() {
       _loadingPolyline = true;
-      if (previewPoints.length >= 2) {
-        _polylines = {
-          Polyline(
-            polylineId: PolylineId('${widget.route.id}_${_variantId}_preview'),
-            points: previewPoints,
-            color: const Color(0xFF3F51B5),
-            width: 5,
-            startCap: Cap.roundCap,
-            endCap: Cap.roundCap,
-          ),
-        };
-      }
+      _polylines = {};
     });
     final fetchedPoints = await DirectionsService().getPolylineForVariant(
       widget.route.id,
-      _variantId,
-      _stops,
+      _variant,
     );
-    final points = fetchedPoints.length >= 2
-        ? fetchedPoints
-        : _stops.map((stop) => stop.position).toList(growable: false);
     if (!mounted) return;
-    final polyline = Polyline(
-      polylineId: PolylineId('${widget.route.id}_$_variantId'),
-      points: points,
-      color: const Color(0xFF3F51B5),
-      width: 5,
-      startCap: Cap.roundCap,
-      endCap: Cap.roundCap,
-    );
     setState(() {
-      _polylines = {polyline};
+      _polylines = fetchedPoints.length >= 2
+          ? {
+              Polyline(
+                polylineId: PolylineId('${widget.route.id}_$_variantId'),
+                points: fetchedPoints,
+                color: const Color(0xFF3F51B5),
+                width: 5,
+                startCap: Cap.roundCap,
+                endCap: Cap.roundCap,
+              ),
+            }
+          : {};
       _loadingPolyline = false;
     });
     _refreshEta();
@@ -162,15 +149,15 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       final BitmapDescriptor icon;
       if (i == 0) {
         icon =
-        (_useCompactMarkers ? _compactStartIcon : _startIcon) ??
+            (_useCompactMarkers ? _compactStartIcon : _startIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen);
       } else if (i == _stops.length - 1) {
         icon =
-        (_useCompactMarkers ? _compactEndIcon : _endIcon) ??
+            (_useCompactMarkers ? _compactEndIcon : _endIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       } else {
         icon =
-        (_useCompactMarkers ? _compactMidIcon : _midIcon) ??
+            (_useCompactMarkers ? _compactMidIcon : _midIcon) ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       }
       markers.add(
