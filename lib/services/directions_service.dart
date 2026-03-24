@@ -16,7 +16,7 @@ class DirectionsService {
   DirectionsService._internal();
 
   static const String _apiKey = 'AIzaSyBwByaaKz7j4OGnwPDxeMdmQ4Pa50GA42o';
-  static const int _polylineCacheVersion = 5;
+  static const int _polylineCacheVersion = 6;
 
   final PolylinePoints _polylinePoints = PolylinePoints();
 
@@ -30,9 +30,13 @@ class DirectionsService {
     RouteVariant variant,
   ) async {
     final variantId = variant.id;
-    final routingPoints = variant.polylinePoints.length >= 2
+    final sourceRoutingPoints = variant.polylinePoints.length >= 2
         ? variant.polylinePoints
         : variant.stops.map((stop) => stop.position).toList(growable: false);
+    final routingPoints = _prepareRoutingPoints(
+      sourceRoutingPoints,
+      preserveDensePoints: _hasManualRoutingPath(variant),
+    );
     if (routingPoints.length < 2) return const <LatLng>[];
 
     final key = _cacheKey(routeId, variantId);
@@ -196,6 +200,7 @@ class DirectionsService {
       'destination': _pointString(batchPoints.last),
       'mode': 'driving',
       'units': 'metric',
+      'alternatives': 'false',
       'key': _apiKey,
     };
 
@@ -252,6 +257,93 @@ class DirectionsService {
       target.add(point);
     }
   }
+
+  List<LatLng> _prepareRoutingPoints(
+    List<LatLng> points, {
+    required bool preserveDensePoints,
+  }) {
+    final deduped = <LatLng>[];
+    for (final point in points) {
+      if (deduped.isNotEmpty && _distanceMeters(deduped.last, point) < 6) {
+        continue;
+      }
+      deduped.add(point);
+    }
+
+    if (deduped.length <= 2 || preserveDensePoints) {
+      return deduped;
+    }
+
+    // Keep corridor anchors and meaningful turns, but skip noisy stop-level
+    // points that commonly produce side-road detours and duplicate branches.
+    final simplified = <LatLng>[deduped.first];
+    for (int i = 1; i < deduped.length - 1; i++) {
+      final previous = simplified.last;
+      final current = deduped[i];
+      final next = deduped[i + 1];
+
+      final direct = _distanceMeters(previous, next);
+      final viaCurrent =
+          _distanceMeters(previous, current) + _distanceMeters(current, next);
+      final turnDelta = _turnDeltaDegrees(previous, current, next);
+
+      final isSpike = direct < 230 && viaCurrent > direct + 180;
+      if (isSpike) {
+        continue;
+      }
+
+      final distanceFromPrevious = _distanceMeters(previous, current);
+      final shouldKeepForTurn = turnDelta >= 22;
+      final shouldKeepForSpacing = distanceFromPrevious >= 180;
+      if (shouldKeepForTurn || shouldKeepForSpacing) {
+        simplified.add(current);
+      }
+    }
+
+    if (!_isSamePoint(simplified.last, deduped.last)) {
+      simplified.add(deduped.last);
+    }
+
+    return simplified.length >= 2 ? simplified : deduped;
+  }
+
+  double _distanceMeters(LatLng a, LatLng b) {
+    const earthRadiusM = 6371000.0;
+    final dLat = _toRadians(b.latitude - a.latitude);
+    final dLng = _toRadians(b.longitude - a.longitude);
+    final lat1 = _toRadians(a.latitude);
+    final lat2 = _toRadians(b.latitude);
+
+    final sinLat = math.sin(dLat / 2);
+    final sinLng = math.sin(dLng / 2);
+    final haversine =
+        (sinLat * sinLat) +
+        (math.cos(lat1) * math.cos(lat2) * sinLng * sinLng);
+    final arc = 2 * math.atan2(math.sqrt(haversine), math.sqrt(1 - haversine));
+    return earthRadiusM * arc;
+  }
+
+  double _bearingDegrees(LatLng from, LatLng to) {
+    final lat1 = _toRadians(from.latitude);
+    final lat2 = _toRadians(to.latitude);
+    final dLng = _toRadians(to.longitude - from.longitude);
+
+    final y = math.sin(dLng) * math.cos(lat2);
+    final x =
+        (math.cos(lat1) * math.sin(lat2)) -
+        (math.sin(lat1) * math.cos(lat2) * math.cos(dLng));
+    final bearing = math.atan2(y, x);
+    return (bearing * 180 / math.pi + 360) % 360;
+  }
+
+  double _turnDeltaDegrees(LatLng a, LatLng b, LatLng c) {
+    final b1 = _bearingDegrees(a, b);
+    final b2 = _bearingDegrees(b, c);
+    final raw = (b2 - b1).abs();
+    return raw > 180 ? 360 - raw : raw;
+  }
+
+  double _toRadians(double value) => value * math.pi / 180;
 
   bool _isSamePoint(LatLng a, LatLng b) {
     return a.latitude == b.latitude && a.longitude == b.longitude;

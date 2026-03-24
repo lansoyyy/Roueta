@@ -219,28 +219,44 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   // ── Road-following polyline ───────────────────────────────────────────────
 
   Future<void> _fetchRoadPolyline() async {
+    final previewPoints = _stops
+        .map((stop) => stop.position)
+        .toList(growable: false);
     setState(() {
       _loadingPolyline = true;
-      _polylines = {};
+      if (previewPoints.length >= 2) {
+        _polylines = {
+          Polyline(
+            polylineId: PolylineId('${widget.route.id}_${_variantId}_preview'),
+            points: previewPoints,
+            color: AppColors.primaryDark,
+            width: 5,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+          ),
+        };
+      }
     });
     final fetchedPoints = await DirectionsService().getPolylineForVariant(
       widget.route.id,
-      _variant,
+      _variantId,
+      _stops,
     );
+    final points = fetchedPoints.length >= 2
+        ? fetchedPoints
+        : _stops.map((stop) => stop.position).toList(growable: false);
     if (!mounted) return;
     setState(() {
-      _polylines = fetchedPoints.length >= 2
-          ? {
-              Polyline(
-                polylineId: PolylineId('${widget.route.id}_$_variantId'),
-                points: fetchedPoints,
-                color: AppColors.primaryDark,
-                width: 5,
-                startCap: Cap.roundCap,
-                endCap: Cap.roundCap,
-              ),
-            }
-          : {};
+      _polylines = {
+        Polyline(
+          polylineId: PolylineId('${widget.route.id}_$_variantId'),
+          points: points,
+          color: AppColors.primaryDark,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      };
       _loadingPolyline = false;
     });
   }
