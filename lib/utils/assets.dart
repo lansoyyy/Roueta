@@ -13,9 +13,9 @@ class AssetPaths {
   // Images
   static const String appLogo = '${imagesDir}logo.png';
   static const String newLogo = '${imagesDir}NEW LOGO.png';
-  static const String startingStopIcon = '${imagesDir}STARTING STOP ICON.PNG';
-  static const String endingStopIcon = '${imagesDir}ENDING STOP ICON.PNG';
-  static const String busStopIcon = '${imagesDir}BUS STOPS ICON.PNG';
+  static const String startingStopIcon = '${imagesDir}STARTING STOP ICON.png';
+  static const String endingStopIcon = '${imagesDir}ENDING STOP ICON.png';
+  static const String busStopIcon = '${imagesDir}BUS STOPS ICON.png';
   static const String userImage = '${imagesDir}user (1).png';
 
   // Fonts

@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -85,16 +86,21 @@ class MapMarkerIcons {
     String assetPath, {
     required int targetWidth,
   }) async {
-    final data = await rootBundle.load(assetPath);
-    final codec = await ui.instantiateImageCodec(
-      data.buffer.asUint8List(),
-      targetWidth: targetWidth,
-    );
-    final frame = await codec.getNextFrame();
-    final byteData = await frame.image.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
+    try {
+      final data = await rootBundle.load(assetPath);
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+        targetWidth: targetWidth,
+      );
+      final frame = await codec.getNextFrame();
+      final byteData = await frame.image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
 
-    return BitmapDescriptor.bytes(Uint8List.view(byteData!.buffer));
+      return BitmapDescriptor.bytes(Uint8List.view(byteData!.buffer));
+    } catch (error) {
+      debugPrint('MapMarkerIcons: failed to load $assetPath: $error');
+      return BitmapDescriptor.defaultMarker;
+    }
   }
 }
