@@ -723,10 +723,21 @@ class RoutesData {
         lng: 125.5900226852448,
       ),
       (name: 'NCCC Maa', lat: 7.0619110502556826, lng: 125.59385166012267),
+      (name: 'Ateneo Matina', lat: 7.062802227300876, lng: 125.59760834306493),
+      (
+        name: 'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
+        lat: 7.067718663619696,
+        lng: 125.60328826830126,
+      ),
       (
         name: 'Grand Menseng Hotel',
         lat: 7.064698731709079,
         lng: 125.60657110786875,
+      ),
+      (
+        name: 'CM Recto Ave. (LBC Recto Branch)',
+        lat: 7.066563206519958,
+        lng: 125.61056314245903,
       ),
       (
         name: 'Davao Light (C. Bangoy St.)',
@@ -862,6 +873,12 @@ class RoutesData {
         lng: 125.5900226852448,
       ),
       (name: 'NCCC Maa', lat: 7.0619110502556826, lng: 125.59385166012267),
+      (name: 'Ateneo Matina', lat: 7.062802227300876, lng: 125.59760834306493),
+      (
+        name: 'Pichon St. cor. Quirino Ave. near OroDERM Hotel',
+        lat: 7.067718663619696,
+        lng: 125.60328826830126,
+      ),
       (
         name: 'Grand Menseng Hotel',
         lat: 7.064698731709079,
