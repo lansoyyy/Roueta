@@ -95,6 +95,7 @@ Notes:
 1. Changing a staff badge updates both `driver_accounts` and `driver_badges`.
 2. The app should block badge and route changes while a staff member is actively operating a route.
 3. Clearing a bus location also clears its per-bus occupancy fields so a future trip does not inherit stale passenger data.
+4. The active driver trip screen pushes the current bus location to `bus_locations` immediately, then roughly every 10 seconds while the trip remains open in the foreground.
 
 ## Security Limitation
 

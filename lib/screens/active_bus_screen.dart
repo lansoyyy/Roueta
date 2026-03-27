@@ -250,8 +250,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
   void _startGpsTracking() {
     // Immediate first update
     _updateGps();
-    // Then every 5 seconds
-    _gpsTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    // Then every 10 seconds
+    _gpsTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) _updateGps();
     });
   }

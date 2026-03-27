@@ -40,11 +40,9 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   BitmapDescriptor? _startIcon;
   BitmapDescriptor? _endIcon;
   BitmapDescriptor? _midIcon;
-  BitmapDescriptor? _busIcon;
   BitmapDescriptor? _compactStartIcon;
   BitmapDescriptor? _compactEndIcon;
   BitmapDescriptor? _compactMidIcon;
-  BitmapDescriptor? _compactBusIcon;
   double _currentZoom = 13.5;
 
   late String _variantId;
@@ -129,20 +127,16 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final start = await MapMarkerIcons.startStop();
     final end = await MapMarkerIcons.endStop();
     final mid = await MapMarkerIcons.busStop();
-    final bus = await MapMarkerIcons.bus();
     final compactStart = await MapMarkerIcons.startStop(compact: true);
     final compactEnd = await MapMarkerIcons.endStop(compact: true);
     final compactMid = await MapMarkerIcons.busStop(compact: true);
-    final compactBus = await MapMarkerIcons.bus(compact: true);
     if (!mounted) return;
     _startIcon = start;
     _endIcon = end;
     _midIcon = mid;
-    _busIcon = bus;
     _compactStartIcon = compactStart;
     _compactEndIcon = compactEnd;
     _compactMidIcon = compactMid;
-    _compactBusIcon = compactBus;
     _buildStopMarkers();
   }
 
@@ -200,10 +194,11 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         Marker(
           markerId: MarkerId('bus_${bus.driverBadge}'),
           position: bus.position,
-          icon:
-              (_useCompactMarkers ? _compactBusIcon : _busIcon) ??
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
           anchor: const Offset(0.5, 1.0),
+          zIndexInt: 4,
           infoWindow: InfoWindow(
             title: bus.driverBadge,
             snippet: 'Stop ${bus.currentStopIndex + 1} of ${_stops.length}',
