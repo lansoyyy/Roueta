@@ -77,12 +77,20 @@ class _AssignedRoutesTab extends StatelessWidget {
   const _AssignedRoutesTab();
 
   Future<String?> _pickVariant(BuildContext context, BusRoute route) async {
+    // Sort AM before PM; within each shift, Outbound before Inbound.
+    final sorted = route.orderedVariants.toList()
+      ..sort((a, b) {
+        final shiftCmp = a.shift.index.compareTo(b.shift.index);
+        return shiftCmp != 0
+            ? shiftCmp
+            : a.direction.index.compareTo(b.direction.index);
+      });
     return showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -92,7 +100,7 @@ class _AssignedRoutesTab extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            ...route.orderedVariants.map(
+            ...sorted.map(
               (v) => ListTile(
                 leading: Icon(
                   v.shift == RouteShift.am
@@ -102,7 +110,7 @@ class _AssignedRoutesTab extends StatelessWidget {
                 ),
                 title: Text(v.shortLabel),
                 subtitle: Text('${v.stops.length} stops'),
-                onTap: () => Navigator.pop(context, v.id),
+                onTap: () => Navigator.pop(sheetContext, v.id),
               ),
             ),
           ],

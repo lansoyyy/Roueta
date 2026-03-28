@@ -74,7 +74,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
         widget.route.defaultVariantId;
     widget.route.selectVariant(_variantId);
 
-    _buildStopMarkers();
+    // Assign initial markers directly — do not call setState during initState.
+    _markers = _computeMarkers(_currentStopIdx);
     _loadMarkerIcons();
     _fetchRoadPolyline();
     _startGpsTracking();
@@ -147,7 +148,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     _compactEndSelectedIcon = compactEndSel;
     _compactMidIcon = compactMid;
     _compactMidSelectedIcon = compactMidSel;
-    _buildStopMarkers();
+    // Rebuild markers now that real icons are available.
+    setState(() => _markers = _computeMarkers(_currentStopIdx));
   }
 
   void _handleCameraMove(CameraPosition position) {
@@ -159,12 +161,14 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     }
   }
 
-  void _buildStopMarkers() {
-    if (_stops.isEmpty) return;
+  // Returns a computed marker set without triggering a rebuild — safe to call
+  // from initState or from within setState.
+  Set<Marker> _computeMarkers(int activeIdx) {
+    if (_stops.isEmpty) return {};
     final markers = <Marker>{};
     for (int i = 0; i < _stops.length; i++) {
       final stop = _stops[i];
-      final bool isCurrent = i == _currentStopIdx;
+      final bool isCurrent = i == activeIdx;
       final BitmapDescriptor icon;
       if (i == 0) {
         icon = isCurrent
@@ -213,7 +217,11 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
         ),
       );
     }
-    setState(() => _markers = markers);
+    return markers;
+  }
+
+  void _buildStopMarkers() {
+    setState(() => _markers = _computeMarkers(_currentStopIdx));
   }
 
   // ── Road-following polyline ───────────────────────────────────────────────
@@ -294,60 +302,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
 
   // Rebuild just the markers when active stop changes (avoids full polyline rebuild).
   void _refreshStopMarkers(int activeIdx) {
-    if (_stops.isEmpty) return;
-    final markers = <Marker>{};
-    for (int i = 0; i < _stops.length; i++) {
-      final stop = _stops[i];
-      final bool isCurrent = i == activeIdx;
-      final BitmapDescriptor icon;
-      if (i == 0) {
-        icon = isCurrent
-            ? ((_useCompactMarkers
-                      ? _compactStartSelectedIcon
-                      : _startSelectedIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ))
-            : ((_useCompactMarkers ? _compactStartIcon : _startIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueGreen,
-                  ));
-      } else if (i == _stops.length - 1) {
-        icon = isCurrent
-            ? ((_useCompactMarkers
-                      ? _compactEndSelectedIcon
-                      : _endSelectedIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ))
-            : ((_useCompactMarkers ? _compactEndIcon : _endIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueOrange,
-                  ));
-      } else {
-        icon = isCurrent
-            ? ((_useCompactMarkers
-                      ? _compactMidSelectedIcon
-                      : _midSelectedIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ))
-            : ((_useCompactMarkers ? _compactMidIcon : _midIcon) ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueCyan,
-                  ));
-      }
-      markers.add(
-        Marker(
-          markerId: MarkerId(stop.id),
-          position: stop.position,
-          icon: icon,
-          anchor: const Offset(0.5, 1.0),
-          infoWindow: InfoWindow(title: stop.name),
-        ),
-      );
-    }
-    if (mounted) setState(() => _markers = markers);
+    if (!mounted) return;
+    setState(() => _markers = _computeMarkers(activeIdx));
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -646,7 +602,14 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
           ),
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+            padding: EdgeInsets.fromLTRB(
+              12,
+              10,
+              12,
+              // Respect the home-indicator safe area — there is no
+              // bottomNavigationBar to handle it automatically.
+              4 + MediaQuery.of(context).padding.bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -721,31 +684,9 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        color: AppColors.primary,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: SafeArea(
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.location_on, color: Colors.white, size: 18),
-                const SizedBox(width: 6),
-                const Text(
-                  'ROUTES',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
+    // No bottomNavigationBar — the back arrow in the header ends the active
+    // session by popping this route, which triggers stopDriverRoute in the caller.
   }
 }
 

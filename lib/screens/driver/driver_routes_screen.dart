@@ -11,12 +11,20 @@ class DriverRoutesScreen extends StatelessWidget {
   const DriverRoutesScreen({super.key});
 
   Future<String?> _pickVariant(BuildContext context, BusRoute route) async {
+    // Sort AM before PM; within each shift, Outbound before Inbound.
+    final sorted = route.orderedVariants.toList()
+      ..sort((a, b) {
+        final shiftCmp = a.shift.index.compareTo(b.shift.index);
+        return shiftCmp != 0
+            ? shiftCmp
+            : a.direction.index.compareTo(b.direction.index);
+      });
     return showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -26,7 +34,7 @@ class DriverRoutesScreen extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 8),
-            ...route.orderedVariants.map(
+            ...sorted.map(
               (v) => ListTile(
                 leading: Icon(
                   v.shift == RouteShift.am
@@ -36,7 +44,7 @@ class DriverRoutesScreen extends StatelessWidget {
                 ),
                 title: Text(v.shortLabel),
                 subtitle: Text('${v.stops.length} stops'),
-                onTap: () => Navigator.pop(context, v.id),
+                onTap: () => Navigator.pop(sheetContext, v.id),
               ),
             ),
           ],
@@ -125,46 +133,53 @@ class DriverRoutesScreen extends StatelessWidget {
                   ),
                   itemCount: routes.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (_, i) => _DriverRouteCard(
-                    route: routes[i],
-                    onTap: () async {
-                      if (routes[i].status == RouteStatus.unavailable) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'This route is currently unavailable',
+                  itemBuilder: (_, i) {
+                    final route = routes[i];
+                    return _DriverRouteCard(
+                      route: route,
+                      onTap: () async {
+                        if (route.status == RouteStatus.unavailable) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'This route is currently unavailable',
+                              ),
+                              backgroundColor: AppColors.statusUnavailable,
+                              behavior: SnackBarBehavior.floating,
                             ),
-                            backgroundColor: AppColors.statusUnavailable,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
+                          );
+                          return;
+                        }
 
-                      final variantId = await _pickVariant(context, routes[i]);
-                      if (variantId == null || !context.mounted) return;
+                        final variantId = await _pickVariant(context, route);
+                        if (variantId == null || !context.mounted) return;
 
-                      provider.setActiveDriverRoute(
-                        routes[i],
-                        variantId: variantId,
-                        driverBadge: auth.driverBadge,
-                        driverName: auth.driverName,
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ActiveBusScreen(
-                            route: routes[i],
-                            initialVariantId: variantId,
-                          ),
-                        ),
-                      ).then(
-                        (_) => provider.stopDriverRoute(
+                        provider.setActiveDriverRoute(
+                          route,
+                          variantId: variantId,
                           driverBadge: auth.driverBadge,
-                        ),
-                      );
-                    },
-                  ),
+                          driverName: auth.driverName,
+                        );
+                        if (!context.mounted) return;
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ActiveBusScreen(
+                              route: route,
+                              initialVariantId: variantId,
+                            ),
+                          ),
+                        ).then((_) {
+                          if (context.mounted) {
+                            provider.stopDriverRoute(
+                              driverBadge: auth.driverBadge,
+                            );
+                          }
+                        });
+                      },
+                    );
+                  },
                 ),
         ),
       ],
