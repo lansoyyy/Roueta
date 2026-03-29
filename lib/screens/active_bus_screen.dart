@@ -74,8 +74,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
         widget.route.defaultVariantId;
     widget.route.selectVariant(_variantId);
 
-    // Assign initial markers directly — do not call setState during initState.
-    _markers = _computeMarkers(_currentStopIdx);
+    _buildStopMarkers();
     _loadMarkerIcons();
     _fetchRoadPolyline();
     _startGpsTracking();
@@ -149,7 +148,7 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     _compactMidIcon = compactMid;
     _compactMidSelectedIcon = compactMidSel;
     // Rebuild markers now that real icons are available.
-    setState(() => _markers = _computeMarkers(_currentStopIdx));
+    _buildStopMarkers();
   }
 
   void _handleCameraMove(CameraPosition position) {
@@ -161,8 +160,8 @@ class _ActiveBusScreenState extends State<ActiveBusScreen> {
     }
   }
 
-  // Returns a computed marker set without triggering a rebuild — safe to call
-  // from initState or from within setState.
+  // Returns a computed marker set — shared between _buildStopMarkers and
+  // _refreshStopMarkers to avoid duplicated icon-selection logic.
   Set<Marker> _computeMarkers(int activeIdx) {
     if (_stops.isEmpty) return {};
     final markers = <Marker>{};
